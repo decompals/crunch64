@@ -30,6 +30,7 @@ fn main() {
 
     let out_bytes = match file_magic {
         b"Yay0" => crunch64::CompressionType::Yay0.decompress(file_bytes.as_slice()),
+        b"Yaz0" => crunch64::CompressionType::Yaz0.decompress(file_bytes.as_slice()),
         _ => {
             panic!("File format not recognized - magic: {:?}", file_magic)
         }
