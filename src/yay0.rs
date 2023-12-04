@@ -1,4 +1,4 @@
-pub fn decompress_yay0(bytes: Vec<u8>) -> Vec<u8> {
+pub fn decompress_yay0(bytes: &[u8]) -> Box<[u8]> {
     let decompressed_size = u32::from_be_bytes(bytes[4..8].try_into().unwrap());
     let link_table_offset = u32::from_be_bytes(bytes[8..12].try_into().unwrap());
     let chunk_offset = u32::from_be_bytes(bytes[12..16].try_into().unwrap());
@@ -56,9 +56,9 @@ pub fn decompress_yay0(bytes: Vec<u8>) -> Vec<u8> {
         mask_bit_counter -= 1;
     }
 
-    ret
+    ret.into_boxed_slice()
 }
 
-pub fn compress_yay0(_bytes: Vec<u8>) -> Vec<u8> {
+pub fn compress_yay0(_bytes: &[u8]) -> Box<[u8]> {
     panic!("Not implemented")
 }

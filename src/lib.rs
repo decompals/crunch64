@@ -21,14 +21,14 @@ pub enum CompressionType {
 }
 
 impl CompressionType {
-    pub fn decompress(self: CompressionType, bytes: Vec<u8>) -> Vec<u8> {
+    pub fn decompress(self: CompressionType, bytes: &[u8]) -> Box<[u8]> {
         match self {
             CompressionType::Yay0 => decompress_yay0(bytes),
             _ => panic!("Unsupported compression type: {:?}", self),
         }
     }
 
-    pub fn compress(self: CompressionType, bytes: Vec<u8>) -> Vec<u8> {
+    pub fn compress(self: CompressionType, bytes: &[u8]) -> Box<[u8]> {
         match self {
             CompressionType::Yay0 => compress_yay0(bytes),
             _ => panic!("Unsupported compression type: {:?}", self),
