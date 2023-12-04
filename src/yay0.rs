@@ -12,7 +12,7 @@ pub fn decompress_yay0(bytes: &[u8]) -> Box<[u8]> {
 
     // Preallocate result and index into it
     let mut idx: usize = 0;
-    let mut ret = vec![0u8; decompressed_size as usize];
+    let mut ret: Vec<u8> = vec![0u8; decompressed_size as usize];
 
     while idx < decompressed_size as usize {
         // If we're out of bits, get the next mask
@@ -61,4 +61,30 @@ pub fn decompress_yay0(bytes: &[u8]) -> Box<[u8]> {
 
 pub fn compress_yay0(_bytes: &[u8]) -> Box<[u8]> {
     panic!("Not implemented")
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_matching() {
+        let compressed_file = include_bytes!("../test_data/Yay0/1.Yay0");
+        let decompressed_file = include_bytes!("../test_data/Yay0/1.bin");
+
+        let decompressed: Box<[u8]> = super::decompress_yay0(compressed_file);
+        assert_eq!(decompressed_file, decompressed.as_ref());
+
+        // let recompressed = super::compress_yay0(decompressed_file.as_slice());
+        // assert_eq!(compressed_file, recompressed);
+    }
+
+    #[test]
+    #[ignore = "not yet implemented"]
+    fn test_cycle() {
+        let decompressed_file = include_bytes!("../test_data/Yay0/1.bin");
+
+        assert_eq!(
+            decompressed_file,
+            super::decompress_yay0(&super::compress_yay0(decompressed_file.as_ref())).as_ref()
+        );
+    }
 }
