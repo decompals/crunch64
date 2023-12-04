@@ -63,3 +63,36 @@ pub fn decompress_yaz0(bytes: &[u8]) -> Box<[u8]> {
 pub fn compress_yaz0(_bytes: &[u8]) -> Box<[u8]> {
     panic!("Not implemented")
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_matching_decompression() {
+        let compressed_file = include_bytes!("../test_data/Yaz0/1.Yaz0");
+        let decompressed_file = include_bytes!("../test_data/Yaz0/1.bin");
+
+        let decompressed: Box<[u8]> = super::decompress_yaz0(compressed_file);
+        assert_eq!(decompressed_file, decompressed.as_ref());
+    }
+
+    #[test]
+    #[ignore = "not yet implemented"]
+    fn test_matching_compression() {
+        let compressed_file = include_bytes!("../test_data/Yaz0/1.Yaz0");
+        let decompressed_file = include_bytes!("../test_data/Yaz0/1.bin");
+
+        let compressed = super::compress_yaz0(decompressed_file.as_slice());
+        assert_eq!(compressed_file, compressed.as_ref());
+    }
+
+    #[test]
+    #[ignore = "not yet implemented"]
+    fn test_cycle() {
+        let decompressed_file = include_bytes!("../test_data/Yaz0/1.bin");
+
+        assert_eq!(
+            decompressed_file,
+            super::decompress_yaz0(&super::compress_yaz0(decompressed_file.as_ref())).as_ref()
+        );
+    }
+}
