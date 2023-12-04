@@ -1,0 +1,11 @@
+[package]
+name = "crunch64"
+version = "0.1.0"
+edition = "2021"
+description = "A library for handling common compression formats for N64 games"
+repository = "https://github.com/ethteck/crunch64"
+license = "MIT"
+
+[dependencies]
+clap = { version = "4.4.10", features = ["derive"] }
+thiserror = "1.0"

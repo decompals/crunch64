@@ -1,0 +1,38 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rustfmt-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run cargo fmt
+        run: cargo fmt --all -- --check
+      - name: Run cargo clippy
+        run: cargo clippy --all -- -D warnings
+  macos-check:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: cargo test --all-features
+  ubuntu-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: cargo test --all-features
+  windows-check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Test
+        run: cargo test --all-features
