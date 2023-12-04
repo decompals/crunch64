@@ -43,7 +43,7 @@ pub fn decompress_yay0(bytes: Vec<u8>) -> Vec<u8> {
                 chunk_idx += 1;
                 count = count_modifier as usize + 18;
             } else {
-                count = count + 2;
+                count += 2;
             }
 
             for i in 0..count {
