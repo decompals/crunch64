@@ -238,8 +238,8 @@ fn search(
 mod tests {
     #[test]
     fn test_matching_decompression() {
-        let compressed_file = include_bytes!("../test_data/1.Yaz0");
-        let decompressed_file = include_bytes!("../test_data/1.bin");
+        let compressed_file = include_bytes!("../test_data/small.txt.Yaz0");
+        let decompressed_file = include_bytes!("../test_data/small.txt");
 
         let decompressed: Box<[u8]> = super::decompress_yaz0(compressed_file);
         assert_eq!(decompressed_file, decompressed.as_ref());
@@ -247,8 +247,8 @@ mod tests {
 
     #[test]
     fn test_matching_compression() {
-        let compressed_file = include_bytes!("../test_data/1.Yaz0");
-        let decompressed_file = include_bytes!("../test_data/1.bin");
+        let compressed_file = include_bytes!("../test_data/small.txt.Yaz0");
+        let decompressed_file = include_bytes!("../test_data/small.txt");
 
         let compressed = super::compress_yaz0(decompressed_file.as_slice());
         assert_eq!(compressed_file, compressed.as_ref());
@@ -256,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_cycle_decompressed() {
-        let decompressed_file = include_bytes!("../test_data/1.bin");
+        let decompressed_file = include_bytes!("../test_data/small.txt");
 
         assert_eq!(
             decompressed_file,
@@ -266,7 +266,7 @@ mod tests {
 
     #[test]
     fn test_cycle_compressed() {
-        let compressed_file = include_bytes!("../test_data/1.Yaz0");
+        let compressed_file = include_bytes!("../test_data/small.txt.Yaz0");
 
         assert_eq!(
             compressed_file,
