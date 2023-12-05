@@ -179,6 +179,38 @@ pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     Ok(output.into_boxed_slice())
 }
 
+// TODO: better name
+#[no_mangle]
+pub extern "C" fn crunch64_decompress_yaz0_get_dst_buffer_size(
+    dst_size: *mut usize,
+    src_len: usize,
+    src: *const u8,
+) -> bool {
+    if src_len < 0x10 {
+        return false;
+    }
+
+    let mut bytes = Vec::with_capacity(0x10);
+    for i in 0..0x10 {
+        bytes.push(unsafe { *src.offset(i as isize) });
+    }
+
+    if &bytes[0..4] != b"Yaz0" {
+        return false;
+    }
+
+    match utils::read_u32(&bytes, 4) {
+        Err(_) => {
+            return false;
+        }
+        Ok(value) => {
+            unsafe { *dst_size = value as usize };
+        }
+    }
+
+    true
+}
+
 #[no_mangle]
 pub extern "C" fn crunch64_decompress_yaz0(
     dst_len: *mut usize,
@@ -197,6 +229,12 @@ pub extern "C" fn crunch64_decompress_yaz0(
             return false;
         }
         Ok(dec) => {
+            // `dst_len` is expected to point to the size of the `dst` pointer,
+            // we use this to check if the decompressed data will fit in `dst`
+            if dec.len() > unsafe { *dst_len } {
+                return false;
+            }
+
             for (i, b) in dec.iter().enumerate() {
                 unsafe {
                     *dst.offset(i as isize) = *b;
