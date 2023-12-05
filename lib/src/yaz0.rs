@@ -179,6 +179,38 @@ pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     Ok(output.into_boxed_slice())
 }
 
+#[no_mangle]
+pub extern "C" fn crunch64_decompress_yaz0(
+    dst_len: *mut usize,
+    dst: *mut u8,
+    src_len: usize,
+    src: *const u8,
+) -> bool {
+    let mut bytes = Vec::with_capacity(src_len);
+
+    for i in 0..src_len {
+        bytes.push(unsafe { *src.offset(i as isize) });
+    }
+
+    match decompress_yaz0(&bytes) {
+        Err(_) => {
+            return false;
+        }
+        Ok(dec) => {
+            for (i, b) in dec.iter().enumerate() {
+                unsafe {
+                    *dst.offset(i as isize) = *b;
+                }
+            }
+            unsafe {
+                *dst_len = dec.len();
+            }
+        }
+    }
+
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use crate::Crunch64Error;
