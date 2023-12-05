@@ -130,8 +130,8 @@ pub fn compress_yaz0(bytes: &[u8]) -> Box<[u8]> {
                 if cur_layout_bit == 0 {
                     cur_layout_bit = 0x80;
                     index_cur_layout_byte = index_out_ptr;
+                    output.push(0);
                     index_out_ptr += 1;
-                    output[index_cur_layout_byte] = 0;
                 }
 
                 group_size = new_size;
