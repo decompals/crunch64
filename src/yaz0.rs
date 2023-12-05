@@ -178,27 +178,51 @@ pub fn compress_yaz0(bytes: &[u8]) -> Box<[u8]> {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn test_matching_decompression() {
-        let compressed_file = include_bytes!("../test_data/small.txt.Yaz0");
-        let decompressed_file = include_bytes!("../test_data/small.txt");
+    use core::panic;
+    use rstest::rstest;
+    use std::{
+        fs::File,
+        io::{BufReader, Read},
+        path::PathBuf,
+    };
+
+    pub fn read_test_file(path: PathBuf) -> Vec<u8> {
+        let file = match File::open(path) {
+            Ok(file) => file,
+            Err(_error) => {
+                panic!("Failed to open file");
+            }
+        };
+
+        let mut buf_reader = BufReader::new(file);
+        let mut buffer = Vec::new();
+
+        let _ = buf_reader.read_to_end(&mut buffer);
+
+        buffer
+    }
+
+    #[rstest]
+    fn test_matching_decompression(#[files("test_data/*.Yaz0")] path: PathBuf) {
+        let compressed_file = &read_test_file(path.clone());
+        let decompressed_file = &read_test_file(path.with_extension(""));
 
         let decompressed: Box<[u8]> = super::decompress_yaz0(compressed_file);
         assert_eq!(decompressed_file, decompressed.as_ref());
     }
 
-    #[test]
-    fn test_matching_compression() {
-        let compressed_file = include_bytes!("../test_data/small.txt.Yaz0");
-        let decompressed_file = include_bytes!("../test_data/small.txt");
+    #[rstest]
+    fn test_matching_compression(#[files("test_data/*.Yaz0")] path: PathBuf) {
+        let compressed_file = &read_test_file(path.clone());
+        let decompressed_file = &read_test_file(path.with_extension(""));
 
         let compressed = super::compress_yaz0(decompressed_file.as_slice());
         assert_eq!(compressed_file, compressed.as_ref());
     }
 
-    #[test]
-    fn test_cycle_decompressed() {
-        let decompressed_file = include_bytes!("../test_data/small.txt");
+    #[rstest]
+    fn test_cycle_decompressed(#[files("test_data/*.Yaz0")] path: PathBuf) {
+        let decompressed_file = &read_test_file(path.with_extension(""));
 
         assert_eq!(
             decompressed_file,
@@ -206,9 +230,9 @@ mod tests {
         );
     }
 
-    #[test]
-    fn test_cycle_compressed() {
-        let compressed_file = include_bytes!("../test_data/small.txt.Yaz0");
+    #[rstest]
+    fn test_cycle_compressed(#[files("test_data/*.Yaz0")] path: PathBuf) {
+        let compressed_file = &read_test_file(path);
 
         assert_eq!(
             compressed_file,
