@@ -1,3 +1,5 @@
+use crate::utils;
+
 pub fn decompress_yay0(bytes: &[u8]) -> Box<[u8]> {
     let decompressed_size = u32::from_be_bytes(bytes[4..8].try_into().unwrap());
     let link_table_offset = u32::from_be_bytes(bytes[8..12].try_into().unwrap());
@@ -160,117 +162,76 @@ pub fn compress_yay0(bytes: &[u8]) -> Box<[u8]> {
     ret.into_boxed_slice()
 }
 
-fn search(a1: usize, insize: usize, a3: &mut i32, a4: &mut u32, bz: &[u8]) {
-    let mut patternlen: usize = 3;
-    let mut v5: usize = 0;
-    let mut v8: isize = 0;
+fn search(
+    input_pos: usize,
+    input_size: usize,
+    pos_out: &mut i32,
+    size_out: &mut u32,
+    data_in: &[u8],
+) {
+    let mut cur_size: usize = 3;
+    let mut found_pos: isize = 0;
+    let mut search_pos: usize = 0;
 
-    if a1 > 0x1000 {
-        v5 = a1 - 0x1000;
+    if input_pos > 0x1000 {
+        search_pos = input_pos - 0x1000;
     }
 
-    let mut v9 = 273;
+    let mut search_size = 273;
 
-    if insize - a1 <= 273 {
-        v9 = insize - a1;
+    if input_size - input_pos <= 273 {
+        search_size = input_size - input_pos;
     }
 
-    if v9 > 2 {
-        while v5 < a1 {
-            let v7 = mischarsearch(&bz[a1..], patternlen, &bz[v5..], patternlen + a1 - v5);
+    if search_size >= 3 {
+        while search_pos < input_pos {
+            let found_offset = utils::mischarsearch(
+                &data_in[input_pos..],
+                cur_size,
+                &data_in[search_pos..],
+                cur_size + input_pos - search_pos,
+            );
 
-            if v7 >= a1 - v5 {
+            if found_offset >= input_pos - search_pos {
                 break;
             }
 
-            while patternlen < v9 {
-                if bz[patternlen + v5 + v7] != bz[patternlen + a1] {
+            while cur_size < search_size {
+                if data_in[cur_size + search_pos + found_offset] != data_in[cur_size + input_pos] {
                     break;
                 }
-                patternlen += 1;
+                cur_size += 1;
             }
 
-            if v9 == patternlen {
-                *a3 = (v7 + v5) as i32;
-                *a4 = patternlen as u32;
+            if search_size == cur_size {
+                *pos_out = (found_offset + search_pos) as i32;
+                *size_out = cur_size as u32;
                 return;
             }
 
-            v8 = (v5 + v7) as isize;
-            patternlen += 1;
-            v5 += v7 + 1;
+            found_pos = (search_pos + found_offset) as isize;
+            search_pos = (found_pos + 1) as usize;
+            cur_size += 1;
         }
 
-        *a3 = v8 as i32;
-        if patternlen > 3 {
-            patternlen -= 1;
-            *a4 = patternlen as u32;
+        *pos_out = found_pos as i32;
+        if cur_size > 3 {
+            cur_size -= 1;
+            *size_out = cur_size as u32;
             return;
         }
     } else {
-        *a3 = 0;
+        *pos_out = 0;
     }
-    *a4 = 0;
-}
-
-fn mischarsearch(pattern: &[u8], pattern_len: usize, data: &[u8], data_len: usize) -> usize {
-    let mut skip_table = [0u16; 256];
-    let mut i: isize;
-    let mut k: usize;
-
-    let mut v6: isize;
-    let mut j: isize;
-
-    if pattern_len <= data_len {
-        // initskip
-        k = 0;
-        while k < skip_table.len() {
-            skip_table[k] = pattern_len as u16;
-            k += 1;
-        }
-
-        k = 0;
-        while k < pattern_len {
-            skip_table[pattern[k] as usize] = (pattern_len - k - 1) as u16;
-            k += 1;
-        }
-
-        i = pattern_len as isize - 1;
-        loop {
-            if pattern[pattern_len - 1] == data[i as usize] {
-                i -= 1;
-                j = pattern_len as isize - 2;
-                if j < 0 {
-                    return (i + 1) as usize;
-                }
-
-                while pattern[j as usize] == data[i as usize] {
-                    i -= 1;
-                    j -= 1;
-                    if j < 0 {
-                        return (i + 1) as usize;
-                    }
-                }
-
-                if skip_table[data[i as usize] as usize] <= (pattern_len as isize - j) as u16 {
-                    v6 = pattern_len as isize - j;
-                    i += v6;
-                    continue;
-                }
-            }
-            v6 = skip_table[data[i as usize] as usize] as isize;
-            i += v6;
-        }
-    }
-    data_len
+    *size_out = 0;
 }
 
 #[cfg(test)]
 mod tests {
     #[test]
     fn test_matching_decompression() {
-        let compressed_file = include_bytes!("../test_data/Yay0/1.Yay0");
-        let decompressed_file = include_bytes!("../test_data/Yay0/1.bin");
+        let compressed_file = include_bytes!("../test_data/1.Yay0");
+        let decompressed_file = include_bytes!("../test_data/1.bin");
 
         let decompressed: Box<[u8]> = super::decompress_yay0(compressed_file);
         assert_eq!(decompressed_file, decompressed.as_ref());
@@ -278,20 +239,30 @@ mod tests {
 
     #[test]
     fn test_matching_compression() {
-        let compressed_file = include_bytes!("../test_data/Yay0/1.Yay0");
-        let decompressed_file = include_bytes!("../test_data/Yay0/1.bin");
+        let compressed_file = include_bytes!("../test_data/1.Yay0");
+        let decompressed_file = include_bytes!("../test_data/1.bin");
 
         let compressed = super::compress_yay0(decompressed_file.as_slice());
         assert_eq!(compressed_file, compressed.as_ref());
     }
 
     #[test]
-    fn test_cycle() {
-        let decompressed_file = include_bytes!("../test_data/Yay0/1.bin");
+    fn test_cycle_decompressed() {
+        let decompressed_file = include_bytes!("../test_data/1.bin");
 
         assert_eq!(
             decompressed_file,
             super::decompress_yay0(&super::compress_yay0(decompressed_file.as_ref())).as_ref()
+        );
+    }
+
+    #[test]
+    fn test_cycle_compressed() {
+        let compressed_file = include_bytes!("../test_data/1.Yay0");
+
+        assert_eq!(
+            compressed_file,
+            super::compress_yay0(&super::decompress_yay0(compressed_file.as_ref())).as_ref()
         );
     }
 }

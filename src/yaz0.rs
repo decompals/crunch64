@@ -2,7 +2,7 @@
 
 use std::cmp;
 
-use crate::utils;
+use crate::utils::{self};
 
 pub fn decompress_yaz0(bytes: &[u8]) -> Box<[u8]> {
     if &bytes[0..4] != b"Yaz0" {
@@ -14,7 +14,7 @@ pub fn decompress_yaz0(bytes: &[u8]) -> Box<[u8]> {
     let mut index_dst = 0;
 
     let uncompressed_size = utils::read_u32(bytes, 4) as usize;
-    let mut ret = vec![0u8; uncompressed_size as usize];
+    let mut ret = vec![0u8; uncompressed_size];
 
     while index_src < bytes.len() {
         let mut layout_bit_index = 0;
@@ -193,7 +193,7 @@ fn search(
 
     if search_size >= 3 {
         while search_pos < input_pos {
-            let found_offset = mischarsearch(
+            let found_offset = utils::mischarsearch(
                 &data_in[input_pos..],
                 cur_size,
                 &data_in[search_pos..],
@@ -234,62 +234,12 @@ fn search(
     *size_out = 0;
 }
 
-fn mischarsearch(pattern: &[u8], pattern_len: usize, data: &[u8], data_len: usize) -> usize {
-    let mut skip_table = [0u16; 256];
-    let mut i: isize;
-    //let mut k: usize;
-
-    let mut v6: isize;
-    let mut j: isize;
-
-    if pattern_len <= data_len {
-        initskip(pattern, pattern_len as i32, &mut skip_table);
-
-        i = pattern_len as isize - 1;
-        loop {
-            if pattern[pattern_len - 1] == data[i as usize] {
-                i -= 1;
-                j = pattern_len as isize - 2;
-                if j < 0 {
-                    return (i + 1) as usize;
-                }
-
-                while pattern[j as usize] == data[i as usize] {
-                    i -= 1;
-                    j -= 1;
-                    if j < 0 {
-                        return (i + 1) as usize;
-                    }
-                }
-
-                v6 = pattern_len as isize - j;
-
-                if skip_table[data[i as usize] as usize] as isize > v6 {
-                    v6 = skip_table[data[i as usize] as usize] as isize;
-                }
-            } else {
-                v6 = skip_table[data[i as usize] as usize] as isize;
-            }
-            i += v6;
-        }
-    }
-    data_len
-}
-
-fn initskip(pattern: &[u8], len: i32, skip: &mut [u16; 256]) {
-    skip.fill(len as u16);
-
-    for i in 0..len {
-        skip[pattern[i as usize] as usize] = (len - i - 1) as u16;
-    }
-}
-
 #[cfg(test)]
 mod tests {
     #[test]
     fn test_matching_decompression() {
-        let compressed_file = include_bytes!("../test_data/Yaz0/1.Yaz0");
-        let decompressed_file = include_bytes!("../test_data/Yaz0/1.bin");
+        let compressed_file = include_bytes!("../test_data/1.Yaz0");
+        let decompressed_file = include_bytes!("../test_data/1.bin");
 
         let decompressed: Box<[u8]> = super::decompress_yaz0(compressed_file);
         assert_eq!(decompressed_file, decompressed.as_ref());
@@ -297,8 +247,8 @@ mod tests {
 
     #[test]
     fn test_matching_compression() {
-        let compressed_file = include_bytes!("../test_data/Yaz0/1.Yaz0");
-        let decompressed_file = include_bytes!("../test_data/Yaz0/1.bin");
+        let compressed_file = include_bytes!("../test_data/1.Yaz0");
+        let decompressed_file = include_bytes!("../test_data/1.bin");
 
         let compressed = super::compress_yaz0(decompressed_file.as_slice());
         assert_eq!(compressed_file, compressed.as_ref());
@@ -306,7 +256,7 @@ mod tests {
 
     #[test]
     fn test_cycle_decompressed() {
-        let decompressed_file = include_bytes!("../test_data/Yaz0/1.bin");
+        let decompressed_file = include_bytes!("../test_data/1.bin");
 
         assert_eq!(
             decompressed_file,
@@ -316,7 +266,7 @@ mod tests {
 
     #[test]
     fn test_cycle_compressed() {
-        let compressed_file = include_bytes!("../test_data/Yaz0/1.Yaz0");
+        let compressed_file = include_bytes!("../test_data/1.Yaz0");
 
         assert_eq!(
             compressed_file,
