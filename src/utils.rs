@@ -1,3 +1,5 @@
+use std::cmp;
+
 pub fn read_u32(bytes: &[u8], offset: usize) -> u32 {
     if offset % 4 != 0 {
         panic!("Unaligned offset");
@@ -6,20 +8,62 @@ pub fn read_u32(bytes: &[u8], offset: usize) -> u32 {
     u32::from_be_bytes(bytes[offset..offset + 4].try_into().unwrap())
 }
 
-fn initskip(pattern: &[u8], len: i32, skip: &mut [u16; 256]) {
-    skip.fill(len as u16);
+pub(crate) fn search(
+    input_pos: usize,
+    input_size: usize,
+    pos_out: &mut i32,
+    size_out: &mut u32,
+    data_in: &[u8],
+) {
+    let mut cur_size: usize = 3;
+    let mut found_pos: isize = 0;
+    let mut search_pos: usize = cmp::max(input_pos as isize - 0x1000, 0) as usize;
+    let search_size = cmp::min(input_size - input_pos, 0x111);
 
-    for i in 0..len {
-        skip[pattern[i as usize] as usize] = (len - i - 1) as u16;
+    if search_size >= 3 {
+        while search_pos < input_pos {
+            let found_offset = mischarsearch(
+                &data_in[input_pos..],
+                cur_size,
+                &data_in[search_pos..],
+                cur_size + input_pos - search_pos,
+            );
+
+            if found_offset >= input_pos - search_pos {
+                break;
+            }
+
+            while cur_size < search_size {
+                if data_in[cur_size + search_pos + found_offset] != data_in[cur_size + input_pos] {
+                    break;
+                }
+                cur_size += 1;
+            }
+
+            if search_size == cur_size {
+                *pos_out = (found_offset + search_pos) as i32;
+                *size_out = cur_size as u32;
+                return;
+            }
+
+            found_pos = (search_pos + found_offset) as isize;
+            search_pos = (found_pos + 1) as usize;
+            cur_size += 1;
+        }
+
+        *pos_out = found_pos as i32;
+        if cur_size > 3 {
+            cur_size -= 1;
+            *size_out = cur_size as u32;
+            return;
+        }
+    } else {
+        *pos_out = 0;
     }
+    *size_out = 0;
 }
 
-pub(crate) fn mischarsearch(
-    pattern: &[u8],
-    pattern_len: usize,
-    data: &[u8],
-    data_len: usize,
-) -> usize {
+fn mischarsearch(pattern: &[u8], pattern_len: usize, data: &[u8], data_len: usize) -> usize {
     let mut skip_table = [0u16; 256];
     let mut i: isize;
     //let mut k: usize;
@@ -59,4 +103,12 @@ pub(crate) fn mischarsearch(
         }
     }
     data_len
+}
+
+fn initskip(pattern: &[u8], len: i32, skip: &mut [u16; 256]) {
+    skip.fill(len as u16);
+
+    for i in 0..len {
+        skip[pattern[i as usize] as usize] = (len - i - 1) as u16;
+    }
 }

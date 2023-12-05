@@ -1,7 +1,5 @@
 // Based on https://gist.github.com/Mr-Wiseguy/6cca110d74b32b5bb19b76cfa2d7ab4f
 
-use std::cmp;
-
 use crate::utils::{self};
 
 pub fn decompress_yaz0(bytes: &[u8]) -> Box<[u8]> {
@@ -89,7 +87,7 @@ pub fn compress_yaz0(bytes: &[u8]) -> Box<[u8]> {
         let mut group_pos: i32 = 0;
         let mut group_size: u32 = 0;
 
-        search(
+        utils::search(
             input_pos,
             input_size,
             &mut group_pos,
@@ -109,7 +107,7 @@ pub fn compress_yaz0(bytes: &[u8]) -> Box<[u8]> {
             let mut new_position: i32 = 0;
 
             // Search for a new group after one position after the current one
-            search(
+            utils::search(
                 input_pos + 1,
                 input_size,
                 &mut new_position,
@@ -177,61 +175,6 @@ pub fn compress_yaz0(bytes: &[u8]) -> Box<[u8]> {
 
     output.shrink_to_fit();
     output.into_boxed_slice()
-}
-
-fn search(
-    input_pos: usize,
-    input_size: usize,
-    pos_out: &mut i32,
-    size_out: &mut u32,
-    data_in: &[u8],
-) {
-    let mut cur_size: usize = 3;
-    let mut found_pos: isize = 0;
-    let mut search_pos: usize = cmp::max(input_pos as isize - 0x1000, 0) as usize;
-    let search_size = cmp::min(input_size - input_pos, 0x111);
-
-    if search_size >= 3 {
-        while search_pos < input_pos {
-            let found_offset = utils::mischarsearch(
-                &data_in[input_pos..],
-                cur_size,
-                &data_in[search_pos..],
-                cur_size + input_pos - search_pos,
-            );
-
-            if found_offset >= input_pos - search_pos {
-                break;
-            }
-
-            while cur_size < search_size {
-                if data_in[cur_size + search_pos + found_offset] != data_in[cur_size + input_pos] {
-                    break;
-                }
-                cur_size += 1;
-            }
-
-            if search_size == cur_size {
-                *pos_out = (found_offset + search_pos) as i32;
-                *size_out = cur_size as u32;
-                return;
-            }
-
-            found_pos = (search_pos + found_offset) as isize;
-            search_pos = (found_pos + 1) as usize;
-            cur_size += 1;
-        }
-
-        *pos_out = found_pos as i32;
-        if cur_size > 3 {
-            cur_size -= 1;
-            *size_out = cur_size as u32;
-            return;
-        }
-    } else {
-        *pos_out = 0;
-    }
-    *size_out = 0;
 }
 
 #[cfg(test)]

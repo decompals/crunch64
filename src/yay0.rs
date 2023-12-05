@@ -86,14 +86,14 @@ pub fn compress_yay0(bytes: &[u8]) -> Box<[u8]> {
         if v6 < v0 as u32 {
             v6 += 1024;
         }
-        search(v0, insize, &mut a3, &mut a4, bytes);
+        utils::search(v0, insize, &mut a3, &mut a4, bytes);
 
         if a4 <= 2 {
             cmd[cp] |= v1;
             def.push(bytes[v0]);
             v0 += 1;
         } else {
-            search(v0 + 1, insize, &mut v8, &mut v7, bytes);
+            utils::search(v0 + 1, insize, &mut v8, &mut v7, bytes);
             if v7 > a4 + 1 {
                 cmd[cp] |= v1;
                 def.push(bytes[v0]);
@@ -160,70 +160,6 @@ pub fn compress_yay0(bytes: &[u8]) -> Box<[u8]> {
     ret.extend(&def);
 
     ret.into_boxed_slice()
-}
-
-fn search(
-    input_pos: usize,
-    input_size: usize,
-    pos_out: &mut i32,
-    size_out: &mut u32,
-    data_in: &[u8],
-) {
-    let mut cur_size: usize = 3;
-    let mut found_pos: isize = 0;
-    let mut search_pos: usize = 0;
-
-    if input_pos > 0x1000 {
-        search_pos = input_pos - 0x1000;
-    }
-
-    let mut search_size = 273;
-
-    if input_size - input_pos <= 273 {
-        search_size = input_size - input_pos;
-    }
-
-    if search_size >= 3 {
-        while search_pos < input_pos {
-            let found_offset = utils::mischarsearch(
-                &data_in[input_pos..],
-                cur_size,
-                &data_in[search_pos..],
-                cur_size + input_pos - search_pos,
-            );
-
-            if found_offset >= input_pos - search_pos {
-                break;
-            }
-
-            while cur_size < search_size {
-                if data_in[cur_size + search_pos + found_offset] != data_in[cur_size + input_pos] {
-                    break;
-                }
-                cur_size += 1;
-            }
-
-            if search_size == cur_size {
-                *pos_out = (found_offset + search_pos) as i32;
-                *size_out = cur_size as u32;
-                return;
-            }
-
-            found_pos = (search_pos + found_offset) as isize;
-            search_pos = (found_pos + 1) as usize;
-            cur_size += 1;
-        }
-
-        *pos_out = found_pos as i32;
-        if cur_size > 3 {
-            cur_size -= 1;
-            *size_out = cur_size as u32;
-            return;
-        }
-    } else {
-        *pos_out = 0;
-    }
-    *size_out = 0;
 }
 
 #[cfg(test)]
