@@ -62,104 +62,122 @@ pub fn decompress_yay0(bytes: &[u8]) -> Box<[u8]> {
 }
 
 pub fn compress_yay0(bytes: &[u8]) -> Box<[u8]> {
+    let input_size = bytes.len();
+
+    let mut output: Vec<u8> = vec![];
+
+    output.extend(b"Yay0");
+    output.extend(&(input_size as u32).to_be_bytes());
+
     let mut pp: usize = 0;
-    let mut cp: usize = 0;
+    let mut index_cur_layout_byte: usize = 0;
 
     let mut cmd: Vec<u32> = vec![0; 0x4000];
     let mut pol: Vec<u16> = Vec::with_capacity(2 * 0x1000);
     let mut def: Vec<u8> = Vec::with_capacity(4 * 0x1000);
 
-    let mut v0: usize = 0;
-    let mut v1: u32 = 0x80000000;
-    let mut v6: u32 = 1024;
-    let mut v7: u32 = 0;
-    let mut v8: i32 = 0;
+    let mut input_pos: usize = 0;
+    let mut cur_layout_bit: u32 = 0x80000000;
 
-    let mut a3: i32 = 0;
-    let mut a4: u32 = 0;
+    while input_pos < input_size {
+        let mut group_pos: i32 = 0;
+        let mut group_size: u32 = 0;
 
-    let insize = bytes.len();
+        utils::search(
+            input_pos,
+            input_size,
+            &mut group_pos,
+            &mut group_size,
+            bytes,
+        );
 
-    let mut ret: Vec<u8> = vec![];
-
-    while v0 < insize {
-        if v6 < v0 as u32 {
-            v6 += 1024;
-        }
-        utils::search(v0, insize, &mut a3, &mut a4, bytes);
-
-        if a4 <= 2 {
-            cmd[cp] |= v1;
-            def.push(bytes[v0]);
-            v0 += 1;
+        // If the group isn't larger than 2 bytes, copying the input without compression is smaller
+        if group_size <= 2 {
+            // Set the current layout bit to indicate that this is an uncompressed byte
+            cmd[index_cur_layout_byte] |= cur_layout_bit;
+            def.push(bytes[input_pos]);
+            input_pos += 1;
         } else {
-            utils::search(v0 + 1, insize, &mut v8, &mut v7, bytes);
-            if v7 > a4 + 1 {
-                cmd[cp] |= v1;
-                def.push(bytes[v0]);
-                v0 += 1;
+            let mut new_size: u32 = 0;
+            let mut new_position: i32 = 0;
 
-                v1 >>= 1;
-                if v1 == 0 {
-                    v1 = 0x80000000;
-                    cp += 1;
-                    cmd[cp] = 0;
+            // Search for a new group after one position after the current one
+            utils::search(
+                input_pos + 1,
+                input_size,
+                &mut new_position,
+                &mut new_size,
+                bytes,
+            );
+
+            // If the new group is better than the current group by at least 2 bytes, use it instead
+            if new_size >= group_size + 2 {
+                // Mark the current layout bit to skip compressing this byte, as the next input position yielded better compression
+                cmd[index_cur_layout_byte] |= cur_layout_bit;
+                def.push(bytes[input_pos]);
+                input_pos += 1;
+
+                // Advance to the next layout bit
+                cur_layout_bit >>= 1;
+
+                if cur_layout_bit == 0 {
+                    cur_layout_bit = 0x80000000;
+                    index_cur_layout_byte += 1;
+                    cmd[index_cur_layout_byte] = 0;
                 }
 
-                a4 = v7;
-                a3 = v8;
+                group_size = new_size;
+                group_pos = new_position;
             }
 
-            let v3 = v0 - a3 as usize - 1;
-            a3 = (v0 - a3 as usize - 1) as i32;
+            // Calculate the offset for the current group
+            let group_offset = input_pos - group_pos as usize - 1;
 
-            if a4 > 0x11 {
-                pol.push(v3 as u16);
+            // Determine which encoding to use for the current group
+            if group_size >= 0x12 {
+                pol.push(group_offset as u16);
                 pp += 1;
-                def.push((a4 - 18) as u8);
+                def.push((group_size - 0x12) as u8);
             } else {
-                pol.push((v3 | (((a4 as u16 - 2) as usize) << 12)) as u16);
+                pol.push((group_offset | (((group_size as u16 - 2) as usize) << 12)) as u16);
                 pp += 1;
             }
 
-            v0 += a4 as usize;
+            // Move forward in the input by the size of the group
+            input_pos += group_size as usize;
         }
 
-        v1 >>= 1;
-        if v1 == 0 {
-            v1 = 0x80000000;
-            cp += 1;
-            cmd[cp] = 0;
+        // Advance to the next layout bit
+        cur_layout_bit >>= 1;
+
+        if cur_layout_bit == 0 {
+            cur_layout_bit = 0x80000000;
+            index_cur_layout_byte += 1;
+            cmd[index_cur_layout_byte] = 0;
         }
     }
 
-    if v1 != 0x80000000 {
-        cp += 1;
+    if cur_layout_bit != 0x80000000 {
+        index_cur_layout_byte += 1;
     }
 
-    let offset: u32 = 4 * cp as u32 + 16;
+    let offset: u32 = 4 * index_cur_layout_byte as u32 + 16;
     let offset2: u32 = 2 * pp as u32 + offset;
 
-    let offset_bytes: [u8; 4] = offset.to_be_bytes();
-    let offset2_bytes: [u8; 4] = offset2.to_be_bytes();
+    output.extend(offset.to_be_bytes());
+    output.extend(offset2.to_be_bytes());
 
-    ret.extend(b"Yay0");
-
-    ret.extend(&(insize as u32).to_be_bytes());
-    ret.extend(offset_bytes);
-    ret.extend(offset2_bytes);
-
-    for &value in &cmd[..cp] {
-        ret.extend(&value.to_be_bytes());
+    for &value in &cmd[..index_cur_layout_byte] {
+        output.extend(&value.to_be_bytes());
     }
 
     for &value in &pol[..pp] {
-        ret.extend(&value.to_be_bytes());
+        output.extend(&value.to_be_bytes());
     }
 
-    ret.extend(&def);
+    output.extend(&def);
 
-    ret.into_boxed_slice()
+    output.into_boxed_slice()
 }
 
 #[cfg(test)]

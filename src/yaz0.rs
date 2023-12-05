@@ -115,7 +115,7 @@ pub fn compress_yaz0(bytes: &[u8]) -> Box<[u8]> {
                 bytes,
             );
 
-            // If the new group is better than the current group by at least 2 bytes, use it one instead
+            // If the new group is better than the current group by at least 2 bytes, use it instead
             if new_size >= group_size + 2 {
                 // Mark the current layout bit to skip compressing this byte, as the next input position yielded better compression
                 output[index_cur_layout_byte] |= cur_layout_bit;
@@ -173,7 +173,6 @@ pub fn compress_yaz0(bytes: &[u8]) -> Box<[u8]> {
         }
     }
 
-    output.shrink_to_fit();
     output.into_boxed_slice()
 }
 
