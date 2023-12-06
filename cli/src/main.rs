@@ -1,5 +1,5 @@
 use clap::{error::ErrorKind, CommandFactory, Parser, ValueEnum};
-use crunch64::{CompressionType, Crunch64Error};
+use crunch64::CompressionType;
 use std::{
     fs::File,
     io::{BufReader, BufWriter, Read, Write},
@@ -28,13 +28,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
 
-    let file_bytes = match read_file_bytes(args.in_path) {
-        Ok(bytes) => bytes,
-        Err(error) => {
-            println!("{:?}", error);
-            return;
-        }
-    };
+    let file_bytes = read_file_bytes(args.in_path);
 
     let compression_format = match args.format.as_str() {
         "Yay0" | "yay0" => CompressionType::Yay0,
@@ -75,25 +69,21 @@ fn main() {
         }
     };
 
-    let _ = buf_writer
-        .write_all(&out_bytes)
-        .or(Err(Crunch64Error::WriteFile));
+    let _ = buf_writer.write_all(&out_bytes);
 }
 
-pub fn read_file_bytes<P: Into<PathBuf>>(path: P) -> Result<Vec<u8>, Crunch64Error> {
+pub fn read_file_bytes<P: Into<PathBuf>>(path: P) -> Vec<u8> {
     let file = match File::open(path.into()) {
         Ok(file) => file,
         Err(_error) => {
-            return Err(Crunch64Error::OpenFile);
+            panic!("Failed to open file");
         }
     };
 
     let mut buf_reader = BufReader::new(file);
     let mut buffer = Vec::new();
 
-    let _ = buf_reader
-        .read_to_end(&mut buffer)
-        .or(Err(Crunch64Error::ReadFile));
+    let _ = buf_reader.read_to_end(&mut buffer);
 
-    Ok(buffer)
+    buffer
 }

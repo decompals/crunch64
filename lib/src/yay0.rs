@@ -5,9 +5,9 @@ pub fn decompress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
         return Err(Crunch64Error::InvalidYay0Header);
     }
 
-    let decompressed_size = utils::read_u32(bytes, 4).unwrap();
-    let link_table_offset = utils::read_u32(bytes, 8).unwrap();
-    let chunk_offset = utils::read_u32(bytes, 12).unwrap();
+    let decompressed_size = utils::read_u32(bytes, 4)?;
+    let link_table_offset = utils::read_u32(bytes, 8)?;
+    let chunk_offset = utils::read_u32(bytes, 12)?;
 
     let mut link_table_idx = link_table_offset as usize;
     let mut chunk_idx = chunk_offset as usize;
@@ -23,7 +23,7 @@ pub fn decompress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     while idx < decompressed_size as usize {
         // If we're out of bits, get the next mask
         if mask_bit_counter == 0 {
-            current_mask = utils::read_u32(bytes, other_idx).unwrap();
+            current_mask = utils::read_u32(bytes, other_idx)?;
             other_idx += 4;
             mask_bit_counter = 32;
         }
@@ -33,7 +33,7 @@ pub fn decompress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             idx += 1;
             chunk_idx += 1;
         } else {
-            let link = utils::read_u16(bytes, link_table_idx).unwrap();
+            let link = utils::read_u16(bytes, link_table_idx)?;
             link_table_idx += 2;
 
             let offset = idx as isize - (link as isize & 0xFFF);
@@ -182,6 +182,7 @@ pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 
 #[cfg(test)]
 mod tests {
+    use crate::Crunch64Error;
     use core::panic;
     use rstest::rstest;
     use std::{
@@ -207,44 +208,52 @@ mod tests {
     }
 
     #[rstest]
-    fn test_matching_decompression(#[files("test_data/*.Yay0")] path: PathBuf) {
+    fn test_matching_decompression(
+        #[files("../test_data/*.Yay0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let decompressed = super::decompress_yay0(compressed_file).unwrap();
+        let decompressed = super::decompress_yay0(compressed_file)?;
         assert_eq!(decompressed_file, decompressed.as_ref());
+        Ok(())
     }
 
     #[rstest]
-    fn test_matching_compression(#[files("test_data/*.Yay0")] path: PathBuf) {
+    fn test_matching_compression(
+        #[files("../test_data/*.Yay0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let compressed = super::compress_yay0(decompressed_file.as_slice()).unwrap();
+        let compressed = super::compress_yay0(decompressed_file.as_slice())?;
         assert_eq!(compressed_file, compressed.as_ref());
+        Ok(())
     }
 
     #[rstest]
-    fn test_cycle_decompressed(#[files("test_data/*.Yay0")] path: PathBuf) {
+    fn test_cycle_decompressed(
+        #[files("../test_data/*.Yay0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
         let decompressed_file = &read_test_file(path.with_extension(""));
 
         assert_eq!(
             decompressed_file,
-            super::decompress_yay0(&super::compress_yay0(decompressed_file.as_ref()).unwrap())
-                .unwrap()
-                .as_ref()
+            super::decompress_yay0(&super::compress_yay0(decompressed_file.as_ref())?)?.as_ref()
         );
+        Ok(())
     }
 
     #[rstest]
-    fn test_cycle_compressed(#[files("test_data/*.Yay0")] path: PathBuf) {
+    fn test_cycle_compressed(
+        #[files("../test_data/*.Yay0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
         let compressed_file = &read_test_file(path);
 
         assert_eq!(
             compressed_file,
-            super::compress_yay0(&super::decompress_yay0(compressed_file.as_ref()).unwrap())
-                .unwrap()
-                .as_ref()
+            super::compress_yay0(&super::decompress_yay0(compressed_file.as_ref())?)?.as_ref()
         );
+        Ok(())
     }
 }

@@ -14,7 +14,7 @@ pub fn decompress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let mut index_src = 0x10;
     let mut index_dst = 0;
 
-    let uncompressed_size = utils::read_u32(bytes, 4).unwrap() as usize;
+    let uncompressed_size = utils::read_u32(bytes, 4)? as usize;
     let mut ret = vec![0u8; uncompressed_size];
 
     while index_src < bytes.len() {
@@ -181,6 +181,7 @@ pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 
 #[cfg(test)]
 mod tests {
+    use crate::Crunch64Error;
     use core::panic;
     use rstest::rstest;
     use std::{
@@ -206,44 +207,52 @@ mod tests {
     }
 
     #[rstest]
-    fn test_matching_decompression(#[files("test_data/*.Yaz0")] path: PathBuf) {
+    fn test_matching_decompression(
+        #[files("../test_data/*.Yaz0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let decompressed: Box<[u8]> = super::decompress_yaz0(compressed_file).unwrap();
+        let decompressed: Box<[u8]> = super::decompress_yaz0(compressed_file)?;
         assert_eq!(decompressed_file, decompressed.as_ref());
+        Ok(())
     }
 
     #[rstest]
-    fn test_matching_compression(#[files("test_data/*.Yaz0")] path: PathBuf) {
+    fn test_matching_compression(
+        #[files("../test_data/*.Yaz0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let compressed = super::compress_yaz0(decompressed_file.as_slice()).unwrap();
+        let compressed = super::compress_yaz0(decompressed_file.as_slice())?;
         assert_eq!(compressed_file, compressed.as_ref());
+        Ok(())
     }
 
     #[rstest]
-    fn test_cycle_decompressed(#[files("test_data/*.Yaz0")] path: PathBuf) {
+    fn test_cycle_decompressed(
+        #[files("../test_data/*.Yaz0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
         let decompressed_file = &read_test_file(path.with_extension(""));
 
         assert_eq!(
             decompressed_file,
-            super::decompress_yaz0(&super::compress_yaz0(decompressed_file.as_ref()).unwrap())
-                .unwrap()
-                .as_ref()
+            super::decompress_yaz0(&super::compress_yaz0(decompressed_file.as_ref())?)?.as_ref()
         );
+        Ok(())
     }
 
     #[rstest]
-    fn test_cycle_compressed(#[files("test_data/*.Yaz0")] path: PathBuf) {
+    fn test_cycle_compressed(
+        #[files("../test_data/*.Yaz0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
         let compressed_file = &read_test_file(path);
 
         assert_eq!(
             compressed_file,
-            super::compress_yaz0(&super::decompress_yaz0(compressed_file.as_ref()).unwrap())
-                .unwrap()
-                .as_ref()
+            super::compress_yaz0(&super::decompress_yaz0(compressed_file.as_ref())?)?.as_ref()
         );
+        Ok(())
     }
 }

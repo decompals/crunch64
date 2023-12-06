@@ -7,9 +7,10 @@ pub fn read_u16(bytes: &[u8], offset: usize) -> Result<u16, Crunch64Error> {
         return Err(Crunch64Error::UnalignedRead);
     }
 
-    Ok(u16::from_be_bytes(
-        bytes[offset..offset + 2].try_into().unwrap(),
-    ))
+    match bytes[offset..offset + 2].try_into() {
+        Ok(bytes) => Ok(u16::from_be_bytes(bytes)),
+        Err(_error) => Err(Crunch64Error::ByteConversion),
+    }
 }
 
 pub fn read_u32(bytes: &[u8], offset: usize) -> Result<u32, Crunch64Error> {
@@ -17,9 +18,10 @@ pub fn read_u32(bytes: &[u8], offset: usize) -> Result<u32, Crunch64Error> {
         return Err(Crunch64Error::UnalignedRead);
     }
 
-    Ok(u32::from_be_bytes(
-        bytes[offset..offset + 4].try_into().unwrap(),
-    ))
+    match bytes[offset..offset + 4].try_into() {
+        Ok(bytes) => Ok(u32::from_be_bytes(bytes)),
+        Err(_error) => Err(Crunch64Error::ByteConversion),
+    }
 }
 
 pub(crate) fn search(

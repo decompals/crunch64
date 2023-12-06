@@ -1,6 +1,3 @@
 {
     "editor.formatOnSave": true,
-    "rust-analyzer.linkedProjects": [
-        "./crunch64-cli/Cargo.toml"
-    ]
 }

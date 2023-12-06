@@ -1,13 +1,6 @@
-[package]
-name = "crunch64"
-version = "0.1.0"
-edition = "2021"
-description = "A library for handling common compression formats for N64 games"
-repository = "https://github.com/ethteck/crunch64"
-license = "MIT"
-
-[dependencies]
-thiserror = "1.0"
-
-[dev-dependencies]
-rstest = "0.18.2"
+[workspace]
+members = [
+    "lib",
+    "cli",
+]
+resolver = "2"
