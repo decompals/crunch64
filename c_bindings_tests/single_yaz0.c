@@ -1,48 +1,77 @@
 #include "crunch64.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#define FREE(ptr)      \
+    if ((ptr) != NULL) \
+    {                  \
+        free((ptr));   \
+    }
+
+uint8_t *read_binary_file(const char *path, size_t *size)
+{
+    assert(path != NULL);
+    assert(size != NULL);
+
+    FILE *f = fopen(path, "rb");
+
+    fseek(f, 0, SEEK_END);
+    *size = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    uint8_t *data = malloc(*size * sizeof(uint8_t));
+    fread(data, sizeof(uint8_t), *size, f);
+    fclose(f);
+    return data;
+}
+
+void write_binary_file(const char *path, uint8_t *data, size_t size)
+{
+    assert(path != NULL);
+    assert(data != NULL);
+
+    FILE *f = fopen(path, "wb");
+    fwrite(data, sizeof(uint8_t), size, f);
+    fclose(f);
+}
+
 int main(void)
 {
-    FILE *compressed_file = fopen("test_data/small.txt.Yaz0", "rb");
+    int ret = EXIT_SUCCESS;
 
-    fseek(compressed_file, 0, SEEK_END);
-    size_t compressed_size = ftell(compressed_file);
-    fseek(compressed_file, 0, SEEK_SET);
-
-    uint8_t *compressed_data = malloc(compressed_size * sizeof(uint8_t));
-    fread(compressed_data, sizeof(uint8_t), compressed_size, compressed_file);
-    fclose(compressed_file);
+    size_t compressed_size;
+    uint8_t *compressed_data = read_binary_file("test_data/small.txt.Yaz0", &compressed_size);
 
     size_t decompressed_size;
-    bool size_request_ok = crunch64_decompress_yaz0_get_dst_buffer_size(&decompressed_size, compressed_size, compressed_data);
+    uint8_t *decompressed_data = NULL;
 
+    bool size_request_ok = crunch64_decompress_yaz0_get_dst_buffer_size(&decompressed_size, compressed_size, compressed_data);
     if (!size_request_ok)
     {
         fprintf(stderr, "failed to request size for buffer\n");
-        free(compressed_data);
-        return 1;
+        goto failure;
     }
 
-    uint8_t *decompressed_data = malloc(decompressed_size * sizeof(uint8_t));
+    decompressed_data = malloc(decompressed_size * sizeof(uint8_t));
 
     bool decompress_ok = crunch64_decompress_yaz0(&decompressed_size, decompressed_data, compressed_size, compressed_data);
-
-    free(compressed_data);
-
     if (!decompress_ok)
     {
         fprintf(stderr, "failed to decompress file\n");
-        free(decompressed_data);
-        return 1;
+        goto failure;
     }
 
-    FILE *decompressed_file = fopen("small.txt", "wb");
-    fwrite(decompressed_data, sizeof(uint8_t), decompressed_size, decompressed_file);
-    fclose(decompressed_file);
+    write_binary_file("small.txt", decompressed_data, decompressed_size);
 
-    free(decompressed_data);
+    if (0)
+    {
+    failure:
+        ret = EXIT_FAILURE;
+    }
+    FREE(compressed_data);
+    FREE(decompressed_data);
 
-    return 0;
+    return ret;
 }
