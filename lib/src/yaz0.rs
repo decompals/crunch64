@@ -185,135 +185,137 @@ pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     Ok(output.into_boxed_slice())
 }
 
-// TODO: better name
-#[no_mangle]
-pub extern "C" fn crunch64_decompress_yaz0_get_dst_buffer_size(
-    dst_size: *mut usize,
-    src_len: usize,
-    src: *const u8,
-) -> bool {
-    if src_len < 0x10 {
-        return false;
-    }
-
-    let mut bytes = Vec::with_capacity(0x10);
-    for i in 0..0x10 {
-        bytes.push(unsafe { *src.offset(i as isize) });
-    }
-
-    if &bytes[0..4] != b"Yaz0" {
-        return false;
-    }
-
-    match utils::read_u32(&bytes, 4) {
-        Err(_) => {
+mod c_bindings {
+    // TODO: better name
+    #[no_mangle]
+    pub extern "C" fn crunch64_decompress_yaz0_get_dst_buffer_size(
+        dst_size: *mut usize,
+        src_len: usize,
+        src: *const u8,
+    ) -> bool {
+        if src_len < 0x10 {
             return false;
         }
-        Ok(value) => {
-            unsafe { *dst_size = value as usize };
+
+        let mut bytes = Vec::with_capacity(0x10);
+        for i in 0..0x10 {
+            bytes.push(unsafe { *src.offset(i as isize) });
         }
-    }
 
-    true
-}
-
-#[no_mangle]
-pub extern "C" fn crunch64_decompress_yaz0(
-    dst_len: *mut usize,
-    dst: *mut u8,
-    src_len: usize,
-    src: *const u8,
-) -> bool {
-    let mut bytes = Vec::with_capacity(src_len);
-
-    for i in 0..src_len {
-        bytes.push(unsafe { *src.offset(i as isize) });
-    }
-
-    if &bytes[0..4] != b"Yaz0" {
-        return false;
-    }
-
-    match decompress_yaz0(&bytes) {
-        Err(_) => {
+        if &bytes[0..4] != b"Yaz0" {
             return false;
         }
-        Ok(dec) => {
-            // `dst_len` is expected to point to the size of the `dst` pointer,
-            // we use this to check if the decompressed data will fit in `dst`
-            if dec.len() > unsafe { *dst_len } {
+
+        match super::utils::read_u32(&bytes, 4) {
+            Err(_) => {
                 return false;
             }
-
-            for (i, b) in dec.iter().enumerate() {
-                unsafe {
-                    *dst.offset(i as isize) = *b;
-                }
-            }
-            unsafe {
-                *dst_len = dec.len();
+            Ok(value) => {
+                unsafe { *dst_size = value as usize };
             }
         }
+
+        true
     }
 
-    true
-}
+    #[no_mangle]
+    pub extern "C" fn crunch64_decompress_yaz0(
+        dst_len: *mut usize,
+        dst: *mut u8,
+        src_len: usize,
+        src: *const u8,
+    ) -> bool {
+        let mut bytes = Vec::with_capacity(src_len);
 
-// TODO: better name
-#[no_mangle]
-pub extern "C" fn crunch64_compress_yaz0_get_dst_buffer_size(
-    dst_size: *mut usize,
-    src_len: usize,
-    src: *const u8,
-) -> bool {
-    let _ = src;
-    let uncompressed_size = size_for_compressed_buffer(src_len);
+        for i in 0..src_len {
+            bytes.push(unsafe { *src.offset(i as isize) });
+        }
 
-    if uncompressed_size.is_none() {
-        return false;
-    }
-
-    unsafe { *dst_size = uncompressed_size.unwrap() };
-
-    true
-}
-
-#[no_mangle]
-pub extern "C" fn crunch64_compress_yaz0(
-    dst_len: *mut usize,
-    dst: *mut u8,
-    src_len: usize,
-    src: *const u8,
-) -> bool {
-    let mut bytes = Vec::with_capacity(src_len);
-
-    for i in 0..src_len {
-        bytes.push(unsafe { *src.offset(i as isize) });
-    }
-
-    match compress_yaz0(&bytes) {
-        Err(_) => {
+        if &bytes[0..4] != b"Yaz0" {
             return false;
         }
-        Ok(data) => {
-            // `dst_len` is expected to point to the size of the `dst` pointer,
-            // we use this to check if the decompressed data will fit in `dst`
-            if data.len() > unsafe { *dst_len } {
+
+        match super::decompress_yaz0(&bytes) {
+            Err(_) => {
                 return false;
             }
+            Ok(dec) => {
+                // `dst_len` is expected to point to the size of the `dst` pointer,
+                // we use this to check if the decompressed data will fit in `dst`
+                if dec.len() > unsafe { *dst_len } {
+                    return false;
+                }
 
-            for (i, b) in data.iter().enumerate() {
+                for (i, b) in dec.iter().enumerate() {
+                    unsafe {
+                        *dst.offset(i as isize) = *b;
+                    }
+                }
                 unsafe {
-                    *dst.offset(i as isize) = *b;
+                    *dst_len = dec.len();
                 }
             }
-            unsafe {
-                *dst_len = data.len();
-            }
         }
+
+        true
     }
 
-    true
+    // TODO: better name
+    #[no_mangle]
+    pub extern "C" fn crunch64_compress_yaz0_get_dst_buffer_size(
+        dst_size: *mut usize,
+        src_len: usize,
+        src: *const u8,
+    ) -> bool {
+        let _ = src;
+        let uncompressed_size = super::size_for_compressed_buffer(src_len);
+
+        if uncompressed_size.is_none() {
+            return false;
+        }
+
+        unsafe { *dst_size = uncompressed_size.unwrap() };
+
+        true
+    }
+
+    #[no_mangle]
+    pub extern "C" fn crunch64_compress_yaz0(
+        dst_len: *mut usize,
+        dst: *mut u8,
+        src_len: usize,
+        src: *const u8,
+    ) -> bool {
+        let mut bytes = Vec::with_capacity(src_len);
+
+        for i in 0..src_len {
+            bytes.push(unsafe { *src.offset(i as isize) });
+        }
+
+        match super::compress_yaz0(&bytes) {
+            Err(_) => {
+                return false;
+            }
+            Ok(data) => {
+                // `dst_len` is expected to point to the size of the `dst` pointer,
+                // we use this to check if the decompressed data will fit in `dst`
+                if data.len() > unsafe { *dst_len } {
+                    return false;
+                }
+
+                for (i, b) in data.iter().enumerate() {
+                    unsafe {
+                        *dst.offset(i as isize) = *b;
+                    }
+                }
+                unsafe {
+                    *dst_len = data.len();
+                }
+            }
+        }
+
+        true
+    }
 }
 
 #[cfg(test)]
