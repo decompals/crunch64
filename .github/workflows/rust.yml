@@ -13,7 +13,7 @@ jobs:
   rustfmt-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
       - name: Run cargo clippy
@@ -21,18 +21,18 @@ jobs:
   macos-check:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Test
         run: cargo test --all-features
   ubuntu-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Test
         run: cargo test --all-features
   windows-check:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Test
         run: cargo test --all-features

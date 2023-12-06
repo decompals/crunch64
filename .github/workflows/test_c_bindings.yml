@@ -1,0 +1,24 @@
+name: Test C bindings
+
+on: [push, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test-c-bindings:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build lib
+        run: cargo build --lib
+
+      - name: Make C test programs
+        run: make
+
+      - name: Test Yay0
+        run: ./c_bindings_tests/single_yay0.elf
+
+      - name: Test Yaz0
+        run: ./c_bindings_tests/single_yaz0.elf
