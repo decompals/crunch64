@@ -61,9 +61,9 @@ pub fn decompress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     Ok(ret.into_boxed_slice())
 }
 
-fn size_for_compressed_buffer(input_size: usize) -> Option<usize> {
+fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error> {
     // TODO, figure out if we can reuse the Yaz0 equivalent
-    Some(input_size * 4)
+    Ok(input_size * 4)
 }
 
 pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
@@ -268,7 +268,6 @@ mod c_bindings {
         true
     }
 
-    // TODO: better name
     #[no_mangle]
     pub extern "C" fn crunch64_compress_yay0_bound(
         dst_size: *mut usize,
@@ -279,14 +278,14 @@ mod c_bindings {
             return false;
         }
 
-        let _ = src;
-        let uncompressed_size = super::size_for_compressed_buffer(src_len);
-
-        if uncompressed_size.is_none() {
-            return false;
+        match super::size_for_compressed_buffer(src_len) {
+            Err(_) => {
+                return false;
+            }
+            Ok(uncompressed_size) => {
+                unsafe { *dst_size = uncompressed_size };
+            }
         }
-
-        unsafe { *dst_size = uncompressed_size.unwrap() };
 
         true
     }

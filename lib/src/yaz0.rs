@@ -67,19 +67,18 @@ fn divide_round_up(a: usize, b: usize) -> usize {
     (a + b - 1) / b
 }
 
-fn size_for_compressed_buffer(input_size: usize) -> Option<usize> {
+fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error> {
     // Worst-case size for output is zero compression on the input, meaning the input size plus the number of layout bytes plus the Yaz0 header.
     // There would be one layout byte for every 8 input bytes, so the worst-case size is:
     //   input_size + ROUND_UP_DIVIDE(input_size, 8) + 0x10
-    Some(input_size + divide_round_up(input_size, 8) + 0x10)
+    Ok(input_size + divide_round_up(input_size, 8) + 0x10)
 }
 
 pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let input_size = bytes.len();
 
     let comp_buffer_size = size_for_compressed_buffer(input_size);
-    // if comp_buffer_size.is_none() {}
-    let mut output: Vec<u8> = Vec::with_capacity(comp_buffer_size.unwrap());
+    let mut output: Vec<u8> = Vec::with_capacity(comp_buffer_size?);
 
     output.extend(b"Yaz0");
     output.extend((input_size as u32).to_be_bytes());
@@ -279,14 +278,14 @@ mod c_bindings {
             return false;
         }
 
-        let _ = src;
-        let uncompressed_size = super::size_for_compressed_buffer(src_len);
-
-        if uncompressed_size.is_none() {
-            return false;
+        match super::size_for_compressed_buffer(src_len) {
+            Err(_) => {
+                return false;
+            }
+            Ok(uncompressed_size) => {
+                unsafe { *dst_size = uncompressed_size };
+            }
         }
-
-        unsafe { *dst_size = uncompressed_size.unwrap() };
 
         true
     }

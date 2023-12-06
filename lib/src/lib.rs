@@ -9,11 +9,11 @@ use yaz0::{compress_yaz0, decompress_yaz0};
 
 #[derive(Copy, Clone, Debug, Error, PartialEq, Eq, Hash)]
 pub enum Crunch64Error {
-    #[error("File does not begin with Yay0 bytes")]
+    #[error("File does not begin with Yay0 header")]
     InvalidYay0Header,
-    #[error("File does not begin with Yaz0 bytes")]
+    #[error("File does not begin with Yaz0 header")]
     InvalidYaz0Header,
-    #[error("File does not begin with Mio0 bytes")]
+    #[error("File does not begin with Mio0 header")]
     InvalidMio0Header,
     #[error("Unsupported compression type")]
     UnsupportedCompressionType,
@@ -21,6 +21,8 @@ pub enum Crunch64Error {
     UnalignedRead,
     #[error("Failed to convert bytes")]
     ByteConversion,
+    #[error("Tried to access data out of bounds")]
+    OutOfBounds,
 }
 
 #[repr(u8)]
