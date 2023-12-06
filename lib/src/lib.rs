@@ -23,6 +23,8 @@ pub enum Crunch64Error {
     ByteConversion,
     #[error("Tried to access data out of bounds")]
     OutOfBounds,
+    #[error("Pointer is null")]
+    NullPointer,
 }
 
 #[repr(u8)]

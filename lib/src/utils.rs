@@ -32,6 +32,50 @@ pub fn read_u32(bytes: &[u8], offset: usize) -> Result<u32, Crunch64Error> {
     }
 }
 
+pub(crate) fn u8_vec_from_pointer_array(
+    src_len: usize,
+    src: *const u8,
+) -> Result<Vec<u8>, Crunch64Error> {
+    if src.is_null() {
+        return Err(Crunch64Error::NullPointer);
+    }
+
+    let mut bytes = Vec::with_capacity(src_len);
+
+    for i in 0..src_len {
+        bytes.push(unsafe { *src.offset(i as isize) });
+    }
+
+    Ok(bytes)
+}
+
+pub(crate) fn set_pointer_array_from_u8_array(
+    dst_len: *mut usize,
+    dst: *mut u8,
+    src: &[u8],
+) -> Result<(), Crunch64Error> {
+    if dst_len.is_null() || dst.is_null() {
+        return Err(Crunch64Error::NullPointer);
+    }
+
+    // `dst_len` is expected to point to the size of the `dst` pointer,
+    // we use this to check if the data will fit in `dst`
+    if src.len() > unsafe { *dst_len } {
+        return Err(Crunch64Error::OutOfBounds);
+    }
+
+    for (i, b) in src.iter().enumerate() {
+        unsafe {
+            *dst.offset(i as isize) = *b;
+        }
+    }
+    unsafe {
+        *dst_len = src.len();
+    }
+
+    Ok(())
+}
+
 pub(crate) fn search(
     input_pos: usize,
     input_size: usize,

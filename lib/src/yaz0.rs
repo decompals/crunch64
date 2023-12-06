@@ -232,36 +232,21 @@ mod c_bindings {
             return false;
         }
 
-        let mut bytes = Vec::with_capacity(src_len);
-
-        for i in 0..src_len {
-            bytes.push(unsafe { *src.offset(i as isize) });
-        }
+        let bytes = match super::utils::u8_vec_from_pointer_array(src_len, src) {
+            Err(_) => return false,
+            Ok(d) => d,
+        };
 
         if &bytes[0..4] != b"Yaz0" {
             return false;
         }
 
         match super::decompress_yaz0(&bytes) {
-            Err(_) => {
-                return false;
-            }
-            Ok(dec) => {
-                // `dst_len` is expected to point to the size of the `dst` pointer,
-                // we use this to check if the decompressed data will fit in `dst`
-                if dec.len() > unsafe { *dst_len } {
-                    return false;
-                }
-
-                for (i, b) in dec.iter().enumerate() {
-                    unsafe {
-                        *dst.offset(i as isize) = *b;
-                    }
-                }
-                unsafe {
-                    *dst_len = dec.len();
-                }
-            }
+            Err(_) => return false,
+            Ok(dec) => match super::utils::set_pointer_array_from_u8_array(dst_len, dst, &dec) {
+                Err(_) => return false,
+                Ok(_) => (),
+            },
         }
 
         true
