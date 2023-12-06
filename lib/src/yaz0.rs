@@ -197,6 +197,10 @@ mod c_bindings {
             return false;
         }
 
+        if dst_size.is_null() || src.is_null() {
+            return false;
+        }
+
         let mut bytes = Vec::with_capacity(0x10);
         for i in 0..0x10 {
             bytes.push(unsafe { *src.offset(i as isize) });
@@ -225,6 +229,10 @@ mod c_bindings {
         src_len: usize,
         src: *const u8,
     ) -> bool {
+        if dst_len.is_null() || dst.is_null() || src.is_null() {
+            return false;
+        }
+
         let mut bytes = Vec::with_capacity(src_len);
 
         for i in 0..src_len {
@@ -267,6 +275,10 @@ mod c_bindings {
         src_len: usize,
         src: *const u8,
     ) -> bool {
+        if dst_size.is_null() || src.is_null() {
+            return false;
+        }
+
         let _ = src;
         let uncompressed_size = super::size_for_compressed_buffer(src_len);
 
@@ -286,6 +298,10 @@ mod c_bindings {
         src_len: usize,
         src: *const u8,
     ) -> bool {
+        if dst_len.is_null() || dst.is_null() || src.is_null() {
+            return false;
+        }
+
         let mut bytes = Vec::with_capacity(src_len);
 
         for i in 0..src_len {

@@ -1,7 +1,7 @@
 BUILD_MODE ?= debug
 
 CC   := gcc
-LIB  := target/$(BUILD_MODE)/libcrunch64.rlib
+LIB  := $(shell realpath -s target/$(BUILD_MODE)/libcrunch64.rlib)
 
 -include target/$(BUILD_MODE)/libcrunch64.d
 
