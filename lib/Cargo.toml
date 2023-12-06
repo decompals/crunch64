@@ -8,8 +8,10 @@ license = "MIT"
 #crate-type = ["cdylib", "staticlib"]
 
 [lib]
+name = "crunch64"
+path = "src/lib.rs"
 # crate-type = ["lib", "dylib", "cdylib", "staticlib", "rlib"]
-crate-type = ["cdylib", "staticlib"]
+crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
 thiserror = "1.0"
