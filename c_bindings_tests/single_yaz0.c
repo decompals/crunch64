@@ -72,7 +72,7 @@ bool decompress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t 
     size_t decompressed_size;
     uint8_t *decompressed_data = NULL;
 
-    bool size_request_ok = crunch64_decompress_yaz0_get_dst_buffer_size(&decompressed_size, src_size, src);
+    bool size_request_ok = crunch64_decompress_yaz0_bound(&decompressed_size, src_size, src);
     if (!size_request_ok)
     {
         fprintf(stderr, " failed to request size for buffer\n");
@@ -110,7 +110,7 @@ bool compress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t *s
     assert(dst != NULL);
     assert(src != NULL);
 
-    bool size_request_ok = crunch64_compress_yaz0_get_dst_buffer_size(&compressed_size, src_size, src);
+    bool size_request_ok = crunch64_compress_yaz0_bound(&compressed_size, src_size, src);
     if (!size_request_ok)
     {
         fprintf(stderr, " failed to request size for buffer\n");

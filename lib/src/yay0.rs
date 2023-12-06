@@ -188,7 +188,7 @@ pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 mod c_bindings {
     // TODO: better name
     #[no_mangle]
-    pub extern "C" fn crunch64_decompress_yay0_get_dst_buffer_size(
+    pub extern "C" fn crunch64_decompress_yay0_bound(
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
@@ -270,7 +270,7 @@ mod c_bindings {
 
     // TODO: better name
     #[no_mangle]
-    pub extern "C" fn crunch64_compress_yay0_get_dst_buffer_size(
+    pub extern "C" fn crunch64_compress_yay0_bound(
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
