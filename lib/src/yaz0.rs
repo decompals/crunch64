@@ -67,13 +67,19 @@ fn divide_round_up(a: usize, b: usize) -> usize {
     (a + b - 1) / b
 }
 
-pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-    let input_size = bytes.len();
+fn size_for_compressed_buffer(input_size: usize) -> Option<usize> {
     // Worst-case size for output is zero compression on the input, meaning the input size plus the number of layout bytes plus the Yaz0 header.
     // There would be one layout byte for every 8 input bytes, so the worst-case size is:
     //   input_size + ROUND_UP_DIVIDE(input_size, 8) + 0x10
-    let mut output: Vec<u8> =
-        Vec::with_capacity(input_size + divide_round_up(input_size, 8) + 0x10);
+    Some(input_size + divide_round_up(input_size, 8) + 0x10)
+}
+
+pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    let input_size = bytes.len();
+
+    let comp_buffer_size = size_for_compressed_buffer(input_size);
+    // if comp_buffer_size.is_none() {}
+    let mut output: Vec<u8> = Vec::with_capacity(comp_buffer_size.unwrap());
 
     output.extend(b"Yaz0");
     output.extend((input_size as u32).to_be_bytes());
@@ -224,6 +230,10 @@ pub extern "C" fn crunch64_decompress_yaz0(
         bytes.push(unsafe { *src.offset(i as isize) });
     }
 
+    if &bytes[0..4] != b"Yaz0" {
+        return false;
+    }
+
     match decompress_yaz0(&bytes) {
         Err(_) => {
             return false;
@@ -242,6 +252,63 @@ pub extern "C" fn crunch64_decompress_yaz0(
             }
             unsafe {
                 *dst_len = dec.len();
+            }
+        }
+    }
+
+    true
+}
+
+// TODO: better name
+#[no_mangle]
+pub extern "C" fn crunch64_compress_yaz0_get_dst_buffer_size(
+    dst_size: *mut usize,
+    src_len: usize,
+    src: *const u8,
+) -> bool {
+    let _ = src;
+    let uncompressed_size = size_for_compressed_buffer(src_len);
+
+    if uncompressed_size.is_none() {
+        return false;
+    }
+
+    unsafe { *dst_size = uncompressed_size.unwrap() };
+
+    true
+}
+
+#[no_mangle]
+pub extern "C" fn crunch64_compress_yaz0(
+    dst_len: *mut usize,
+    dst: *mut u8,
+    src_len: usize,
+    src: *const u8,
+) -> bool {
+    let mut bytes = Vec::with_capacity(src_len);
+
+    for i in 0..src_len {
+        bytes.push(unsafe { *src.offset(i as isize) });
+    }
+
+    match compress_yaz0(&bytes) {
+        Err(_) => {
+            return false;
+        }
+        Ok(data) => {
+            // `dst_len` is expected to point to the size of the `dst` pointer,
+            // we use this to check if the decompressed data will fit in `dst`
+            if data.len() > unsafe { *dst_len } {
+                return false;
+            }
+
+            for (i, b) in data.iter().enumerate() {
+                unsafe {
+                    *dst.offset(i as isize) = *b;
+                }
+            }
+            unsafe {
+                *dst_len = data.len();
             }
         }
     }
