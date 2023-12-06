@@ -1,9 +1,13 @@
-use crate::utils;
+use crate::{utils, Crunch64Error};
 
-pub fn decompress_yay0(bytes: &[u8]) -> Box<[u8]> {
-    let decompressed_size = u32::from_be_bytes(bytes[4..8].try_into().unwrap());
-    let link_table_offset = u32::from_be_bytes(bytes[8..12].try_into().unwrap());
-    let chunk_offset = u32::from_be_bytes(bytes[12..16].try_into().unwrap());
+pub fn decompress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    if &bytes[0..4] != b"Yay0" {
+        return Err(Crunch64Error::InvalidYay0Header);
+    }
+
+    let decompressed_size = utils::read_u32(bytes, 4).unwrap();
+    let link_table_offset = utils::read_u32(bytes, 8).unwrap();
+    let chunk_offset = utils::read_u32(bytes, 12).unwrap();
 
     let mut link_table_idx = link_table_offset as usize;
     let mut chunk_idx = chunk_offset as usize;
@@ -19,7 +23,7 @@ pub fn decompress_yay0(bytes: &[u8]) -> Box<[u8]> {
     while idx < decompressed_size as usize {
         // If we're out of bits, get the next mask
         if mask_bit_counter == 0 {
-            current_mask = u32::from_be_bytes(bytes[other_idx..other_idx + 4].try_into().unwrap());
+            current_mask = utils::read_u32(bytes, other_idx).unwrap();
             other_idx += 4;
             mask_bit_counter = 32;
         }
@@ -29,11 +33,7 @@ pub fn decompress_yay0(bytes: &[u8]) -> Box<[u8]> {
             idx += 1;
             chunk_idx += 1;
         } else {
-            let link = u16::from_be_bytes(
-                bytes[link_table_idx..link_table_idx + 2]
-                    .try_into()
-                    .unwrap(),
-            );
+            let link = utils::read_u16(bytes, link_table_idx).unwrap();
             link_table_idx += 2;
 
             let offset = idx as isize - (link as isize & 0xFFF);
@@ -58,10 +58,10 @@ pub fn decompress_yay0(bytes: &[u8]) -> Box<[u8]> {
         mask_bit_counter -= 1;
     }
 
-    ret.into_boxed_slice()
+    Ok(ret.into_boxed_slice())
 }
 
-pub fn compress_yay0(bytes: &[u8]) -> Box<[u8]> {
+pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let input_size = bytes.len();
 
     let mut output: Vec<u8> = vec![];
@@ -177,7 +177,7 @@ pub fn compress_yay0(bytes: &[u8]) -> Box<[u8]> {
 
     output.extend(&def);
 
-    output.into_boxed_slice()
+    Ok(output.into_boxed_slice())
 }
 
 #[cfg(test)]
@@ -211,7 +211,7 @@ mod tests {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let decompressed: Box<[u8]> = super::decompress_yay0(compressed_file);
+        let decompressed = super::decompress_yay0(compressed_file).unwrap();
         assert_eq!(decompressed_file, decompressed.as_ref());
     }
 
@@ -220,7 +220,7 @@ mod tests {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let compressed = super::compress_yay0(decompressed_file.as_slice());
+        let compressed = super::compress_yay0(decompressed_file.as_slice()).unwrap();
         assert_eq!(compressed_file, compressed.as_ref());
     }
 
@@ -230,7 +230,9 @@ mod tests {
 
         assert_eq!(
             decompressed_file,
-            super::decompress_yay0(&super::compress_yay0(decompressed_file.as_ref())).as_ref()
+            super::decompress_yay0(&super::compress_yay0(decompressed_file.as_ref()).unwrap())
+                .unwrap()
+                .as_ref()
         );
     }
 
@@ -240,7 +242,9 @@ mod tests {
 
         assert_eq!(
             compressed_file,
-            super::compress_yay0(&super::decompress_yay0(compressed_file.as_ref())).as_ref()
+            super::compress_yay0(&super::decompress_yay0(compressed_file.as_ref()).unwrap())
+                .unwrap()
+                .as_ref()
         );
     }
 }

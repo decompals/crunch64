@@ -1,11 +1,25 @@
 use std::cmp;
 
-pub fn read_u32(bytes: &[u8], offset: usize) -> u32 {
-    if offset % 4 != 0 {
-        panic!("Unaligned offset");
+use crate::Crunch64Error;
+
+pub fn read_u16(bytes: &[u8], offset: usize) -> Result<u16, Crunch64Error> {
+    if offset % 2 != 0 {
+        return Err(Crunch64Error::UnalignedRead);
     }
 
-    u32::from_be_bytes(bytes[offset..offset + 4].try_into().unwrap())
+    Ok(u16::from_be_bytes(
+        bytes[offset..offset + 2].try_into().unwrap(),
+    ))
+}
+
+pub fn read_u32(bytes: &[u8], offset: usize) -> Result<u32, Crunch64Error> {
+    if offset % 4 != 0 {
+        return Err(Crunch64Error::UnalignedRead);
+    }
+
+    Ok(u32::from_be_bytes(
+        bytes[offset..offset + 4].try_into().unwrap(),
+    ))
 }
 
 pub(crate) fn search(
@@ -66,7 +80,6 @@ pub(crate) fn search(
 fn mischarsearch(pattern: &[u8], pattern_len: usize, data: &[u8], data_len: usize) -> usize {
     let mut skip_table = [0u16; 256];
     let mut i: isize;
-    //let mut k: usize;
 
     let mut v6: isize;
     let mut j: isize;

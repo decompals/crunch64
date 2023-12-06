@@ -1,17 +1,20 @@
 // Based on https://gist.github.com/Mr-Wiseguy/6cca110d74b32b5bb19b76cfa2d7ab4f
 
-use crate::utils::{self};
+use crate::{
+    utils::{self},
+    Crunch64Error,
+};
 
-pub fn decompress_yaz0(bytes: &[u8]) -> Box<[u8]> {
+pub fn decompress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     if &bytes[0..4] != b"Yaz0" {
-        panic!("not Yaz0 data");
+        return Err(Crunch64Error::InvalidYaz0Header);
     }
 
     // Skip the header
     let mut index_src = 0x10;
     let mut index_dst = 0;
 
-    let uncompressed_size = utils::read_u32(bytes, 4) as usize;
+    let uncompressed_size = utils::read_u32(bytes, 4).unwrap() as usize;
     let mut ret = vec![0u8; uncompressed_size];
 
     while index_src < bytes.len() {
@@ -57,14 +60,14 @@ pub fn decompress_yaz0(bytes: &[u8]) -> Box<[u8]> {
         }
     }
 
-    ret.into_boxed_slice()
+    Ok(ret.into_boxed_slice())
 }
 
 fn divide_round_up(a: usize, b: usize) -> usize {
     (a + b - 1) / b
 }
 
-pub fn compress_yaz0(bytes: &[u8]) -> Box<[u8]> {
+pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let input_size = bytes.len();
     // Worst-case size for output is zero compression on the input, meaning the input size plus the number of layout bytes plus the Yaz0 header.
     // There would be one layout byte for every 8 input bytes, so the worst-case size is:
@@ -173,7 +176,7 @@ pub fn compress_yaz0(bytes: &[u8]) -> Box<[u8]> {
         }
     }
 
-    output.into_boxed_slice()
+    Ok(output.into_boxed_slice())
 }
 
 #[cfg(test)]
@@ -207,7 +210,7 @@ mod tests {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let decompressed: Box<[u8]> = super::decompress_yaz0(compressed_file);
+        let decompressed: Box<[u8]> = super::decompress_yaz0(compressed_file).unwrap();
         assert_eq!(decompressed_file, decompressed.as_ref());
     }
 
@@ -216,7 +219,7 @@ mod tests {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let compressed = super::compress_yaz0(decompressed_file.as_slice());
+        let compressed = super::compress_yaz0(decompressed_file.as_slice()).unwrap();
         assert_eq!(compressed_file, compressed.as_ref());
     }
 
@@ -226,7 +229,9 @@ mod tests {
 
         assert_eq!(
             decompressed_file,
-            super::decompress_yaz0(&super::compress_yaz0(decompressed_file.as_ref())).as_ref()
+            super::decompress_yaz0(&super::compress_yaz0(decompressed_file.as_ref()).unwrap())
+                .unwrap()
+                .as_ref()
         );
     }
 
@@ -236,7 +241,9 @@ mod tests {
 
         assert_eq!(
             compressed_file,
-            super::compress_yaz0(&super::decompress_yaz0(compressed_file.as_ref())).as_ref()
+            super::compress_yaz0(&super::decompress_yaz0(compressed_file.as_ref()).unwrap())
+                .unwrap()
+                .as_ref()
         );
     }
 }

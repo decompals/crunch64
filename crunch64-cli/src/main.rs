@@ -1,14 +1,24 @@
-use clap::Parser;
-use crunch64::Crunch64Error;
+use clap::{error::ErrorKind, CommandFactory, Parser, ValueEnum};
+use crunch64::{CompressionType, Crunch64Error};
 use std::{
     fs::File,
     io::{BufReader, BufWriter, Read, Write},
     path::PathBuf,
 };
 
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
+enum Command {
+    Compress,
+    Decompress,
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
+    #[arg()]
+    command: Command,
+    #[arg()]
+    format: String,
     #[arg()]
     in_path: String,
     #[arg()]
@@ -26,14 +36,35 @@ fn main() {
         }
     };
 
-    let file_magic: &[u8] = &file_bytes[0..4];
-
-    let out_bytes = match file_magic {
-        b"Yay0" => crunch64::CompressionType::Yay0.decompress(file_bytes.as_slice()),
-        b"Yaz0" => crunch64::CompressionType::Yaz0.decompress(file_bytes.as_slice()),
+    let compression_format = match args.format.as_str() {
+        "Yay0" | "yay0" => CompressionType::Yay0,
+        "Yaz0" | "yaz0" => CompressionType::Yaz0,
+        "Mio0" | "mio0" => CompressionType::Mio0,
         _ => {
-            panic!("File format not recognized - magic: {:?}", file_magic)
+            let mut cmd = Args::command();
+            cmd.error(
+                ErrorKind::InvalidValue,
+                format!("File format {} not supported", args.format),
+            )
+            .exit()
         }
+    };
+
+    let out_bytes = match args.command {
+        Command::Compress => match compression_format.compress(file_bytes.as_slice()) {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                println!("{:?}", error);
+                return;
+            }
+        },
+        Command::Decompress => match compression_format.decompress(file_bytes.as_slice()) {
+            Ok(bytes) => bytes,
+            Err(error) => {
+                println!("{:?}", error);
+                return;
+            }
+        },
     };
 
     let mut buf_writer = match File::create(args.out_path) {

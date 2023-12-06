@@ -15,6 +15,16 @@ pub enum Crunch64Error {
     ReadFile,
     #[error("Failed to write file")]
     WriteFile,
+    #[error("File does not begin with Yay0 bytes")]
+    InvalidYay0Header,
+    #[error("File does not begin with Yaz0 bytes")]
+    InvalidYaz0Header,
+    #[error("File does not begin with Mio0 bytes")]
+    InvalidMio0Header,
+    #[error("Unsupported compression type")]
+    UnsupportedCompressionType,
+    #[error("Unaligned read")]
+    UnalignedRead,
 }
 
 #[repr(u8)]
@@ -26,19 +36,19 @@ pub enum CompressionType {
 }
 
 impl CompressionType {
-    pub fn decompress(self: CompressionType, bytes: &[u8]) -> Box<[u8]> {
+    pub fn decompress(self: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
         match self {
             CompressionType::Yay0 => decompress_yay0(bytes),
             CompressionType::Yaz0 => decompress_yaz0(bytes),
-            _ => panic!("Unsupported compression type: {:?}", self),
+            _ => Err(Crunch64Error::UnsupportedCompressionType),
         }
     }
 
-    pub fn compress(self: CompressionType, bytes: &[u8]) -> Box<[u8]> {
+    pub fn compress(self: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
         match self {
             CompressionType::Yay0 => compress_yay0(bytes),
             CompressionType::Yaz0 => compress_yaz0(bytes),
-            _ => panic!("Unsupported compression type: {:?}", self),
+            _ => Err(Crunch64Error::UnsupportedCompressionType),
         }
     }
 }
