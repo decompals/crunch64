@@ -5,13 +5,10 @@ edition = "2021"
 description = "A library for handling common compression formats for N64 games"
 repository = "https://github.com/ethteck/crunch64"
 license = "MIT"
-#crate-type = ["cdylib", "staticlib"]
 
 [lib]
 name = "crunch64"
 path = "src/lib.rs"
-# crate-type = ["lib", "dylib", "cdylib", "staticlib", "rlib"]
-crate-type = ["lib", "cdylib", "staticlib"]
 
 [dependencies]
 thiserror = "1.0"
