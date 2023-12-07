@@ -1,9 +1,6 @@
 // Based on https://gist.github.com/Mr-Wiseguy/6cca110d74b32b5bb19b76cfa2d7ab4f
 
-use crate::{
-    utils::{self},
-    Crunch64Error,
-};
+use crate::{utils, Crunch64Error};
 
 fn parse_header(bytes: &[u8]) -> Result<usize, Crunch64Error> {
     if bytes.len() < 0x10 {
@@ -99,8 +96,7 @@ fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error>
 pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let input_size = bytes.len();
 
-    let comp_buffer_size = size_for_compressed_buffer(input_size)?;
-    let mut output: Vec<u8> = Vec::with_capacity(comp_buffer_size);
+    let mut output: Vec<u8> = Vec::with_capacity(size_for_compressed_buffer(input_size)?);
 
     write_header(&mut output, input_size)?;
 

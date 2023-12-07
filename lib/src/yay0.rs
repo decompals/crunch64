@@ -1,26 +1,50 @@
 use crate::{utils, Crunch64Error};
 
-pub fn decompress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-    if &bytes[0..4] != b"Yay0" {
-        return Err(Crunch64Error::InvalidYay0Header);
+fn parse_header(bytes: &[u8]) -> Result<(usize, usize, usize), Crunch64Error> {
+    if bytes.len() < 0x10 {
+        return Err(Crunch64Error::InvalidYaz0Header);
     }
 
-    let decompressed_size = utils::read_u32(bytes, 4)?;
-    let link_table_offset = utils::read_u32(bytes, 8)?;
-    let chunk_offset = utils::read_u32(bytes, 12)?;
+    if &bytes[0..4] != b"Yay0" {
+        return Err(Crunch64Error::InvalidYaz0Header);
+    }
 
-    let mut link_table_idx = link_table_offset as usize;
-    let mut chunk_idx = chunk_offset as usize;
-    let mut other_idx = 16;
+    let decompressed_size = utils::read_u32(bytes, 0x4)? as usize;
+    let link_table_offset = utils::read_u32(bytes, 0x8)? as usize;
+    let chunk_offset = utils::read_u32(bytes, 0xC)? as usize;
+
+    Ok((decompressed_size, link_table_offset, chunk_offset))
+}
+
+fn write_header(
+    dst: &mut Vec<u8>,
+    uncompressed_size: usize,
+    link_table_offset: usize,
+    chunk_offset: usize,
+) -> Result<(), Crunch64Error> {
+    dst.extend(b"Yay0");
+    dst.extend((uncompressed_size as u32).to_be_bytes());
+    dst.extend((link_table_offset as u32).to_be_bytes());
+    dst.extend((chunk_offset as u32).to_be_bytes());
+
+    Ok(())
+}
+
+pub fn decompress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    let (decompressed_size, link_table_offset, chunk_offset) = parse_header(bytes)?;
+
+    let mut link_table_idx = link_table_offset;
+    let mut chunk_idx = chunk_offset;
+    let mut other_idx = 0x10;
 
     let mut mask_bit_counter = 0;
     let mut current_mask = 0;
 
     // Preallocate result and index into it
     let mut idx: usize = 0;
-    let mut ret: Vec<u8> = vec![0u8; decompressed_size as usize];
+    let mut ret: Vec<u8> = vec![0u8; decompressed_size];
 
-    while idx < decompressed_size as usize {
+    while idx < decompressed_size {
         // If we're out of bits, get the next mask
         if mask_bit_counter == 0 {
             current_mask = utils::read_u32(bytes, other_idx)?;
@@ -68,11 +92,6 @@ fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error>
 
 pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let input_size = bytes.len();
-
-    let mut output: Vec<u8> = vec![];
-
-    output.extend(b"Yay0");
-    output.extend(&(input_size as u32).to_be_bytes());
 
     let mut pp: usize = 0;
     let mut index_cur_layout_byte: usize = 0;
@@ -166,11 +185,12 @@ pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
         index_cur_layout_byte += 1;
     }
 
-    let offset: u32 = 4 * index_cur_layout_byte as u32 + 16;
-    let offset2: u32 = 2 * pp as u32 + offset;
+    let link_table_offset: usize = 4 * index_cur_layout_byte + 16;
+    let chunk_offset: usize = 2 * pp + link_table_offset;
 
-    output.extend(offset.to_be_bytes());
-    output.extend(offset2.to_be_bytes());
+    let mut output: Vec<u8> = Vec::with_capacity(size_for_compressed_buffer(input_size)?);
+
+    write_header(&mut output, input_size, link_table_offset, chunk_offset)?;
 
     for &value in &cmd[..index_cur_layout_byte] {
         output.extend(&value.to_be_bytes());
@@ -201,22 +221,18 @@ mod c_bindings {
             return false;
         }
 
-        let mut bytes = Vec::with_capacity(0x10);
-        for i in 0..0x10 {
-            bytes.push(unsafe { *src.offset(i as isize) });
-        }
+        let bytes = match super::utils::u8_vec_from_pointer_array(0x10, src) {
+            Err(_) => return false,
+            Ok(d) => d,
+        };
 
         if &bytes[0..4] != b"Yay0" {
             return false;
         }
 
-        match super::utils::read_u32(&bytes, 4) {
-            Err(_) => {
-                return false;
-            }
-            Ok(value) => {
-                unsafe { *dst_size = value as usize };
-            }
+        match super::parse_header(&bytes) {
+            Err(_) => return false,
+            Ok((value, _, _)) => unsafe { *dst_size = value as usize },
         }
 
         true
@@ -233,36 +249,21 @@ mod c_bindings {
             return false;
         }
 
-        let mut bytes = Vec::with_capacity(src_len);
-
-        for i in 0..src_len {
-            bytes.push(unsafe { *src.offset(i as isize) });
-        }
+        let bytes = match super::utils::u8_vec_from_pointer_array(src_len, src) {
+            Err(_) => return false,
+            Ok(d) => d,
+        };
 
         if &bytes[0..4] != b"Yay0" {
             return false;
         }
 
         match super::decompress_yay0(&bytes) {
-            Err(_) => {
-                return false;
-            }
-            Ok(dec) => {
-                // `dst_len` is expected to point to the size of the `dst` pointer,
-                // we use this to check if the decompressed data will fit in `dst`
-                if dec.len() > unsafe { *dst_len } {
-                    return false;
-                }
-
-                for (i, b) in dec.iter().enumerate() {
-                    unsafe {
-                        *dst.offset(i as isize) = *b;
-                    }
-                }
-                unsafe {
-                    *dst_len = dec.len();
-                }
-            }
+            Err(_) => return false,
+            Ok(dec) => match super::utils::set_pointer_array_from_u8_array(dst_len, dst, &dec) {
+                Err(_) => return false,
+                Ok(_) => (),
+            },
         }
 
         true
@@ -279,12 +280,8 @@ mod c_bindings {
         }
 
         match super::size_for_compressed_buffer(src_len) {
-            Err(_) => {
-                return false;
-            }
-            Ok(uncompressed_size) => {
-                unsafe { *dst_size = uncompressed_size };
-            }
+            Err(_) => return false,
+            Ok(uncompressed_size) => unsafe { *dst_size = uncompressed_size },
         }
 
         true
@@ -301,32 +298,17 @@ mod c_bindings {
             return false;
         }
 
-        let mut bytes = Vec::with_capacity(src_len);
-
-        for i in 0..src_len {
-            bytes.push(unsafe { *src.offset(i as isize) });
-        }
+        let bytes = match super::utils::u8_vec_from_pointer_array(src_len, src) {
+            Err(_) => return false,
+            Ok(d) => d,
+        };
 
         match super::compress_yay0(&bytes) {
-            Err(_) => {
-                return false;
-            }
-            Ok(data) => {
-                // `dst_len` is expected to point to the size of the `dst` pointer,
-                // we use this to check if the decompressed data will fit in `dst`
-                if data.len() > unsafe { *dst_len } {
-                    return false;
-                }
-
-                for (i, b) in data.iter().enumerate() {
-                    unsafe {
-                        *dst.offset(i as isize) = *b;
-                    }
-                }
-                unsafe {
-                    *dst_len = data.len();
-                }
-            }
+            Err(_) => return false,
+            Ok(data) => match super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
+                Err(_) => return false,
+                Ok(_) => (),
+            },
         }
 
         true
