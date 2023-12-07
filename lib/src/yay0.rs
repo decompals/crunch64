@@ -206,7 +206,6 @@ pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 }
 
 mod c_bindings {
-    // TODO: better name
     #[no_mangle]
     pub extern "C" fn crunch64_decompress_yay0_bound(
         dst_size: *mut usize,
@@ -225,10 +224,6 @@ mod c_bindings {
             Err(_) => return false,
             Ok(d) => d,
         };
-
-        if &bytes[0..4] != b"Yay0" {
-            return false;
-        }
 
         match super::parse_header(&bytes) {
             Err(_) => return false,
@@ -253,10 +248,6 @@ mod c_bindings {
             Err(_) => return false,
             Ok(d) => d,
         };
-
-        if &bytes[0..4] != b"Yay0" {
-            return false;
-        }
 
         match super::decompress_yay0(&bytes) {
             Err(_) => return false,

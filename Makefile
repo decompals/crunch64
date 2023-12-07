@@ -1,6 +1,7 @@
 BUILD_MODE ?= debug
 
 CC   := gcc
+LIB  := target/$(BUILD_MODE)/libcrunch64.a
 
 CSTD       := -std=c11
 ifeq ($(BUILD_MODE), debug)
@@ -22,6 +23,12 @@ clean:
 
 .PHONY: all clean
 .DEFAULT_GOAL := all
+
+CARGO_FLAGS ?=
+ifneq ($(BUILD_MODE), debug)
+    CARGO_FLAGS += --release
+endif
+$(shell cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type=staticlib $(CARGO_FLAGS))
 
 
 %.elf: %.c $(LIB)

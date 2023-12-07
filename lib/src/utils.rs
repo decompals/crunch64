@@ -22,7 +22,7 @@ pub fn read_u32(bytes: &[u8], offset: usize) -> Result<u32, Crunch64Error> {
         return Err(Crunch64Error::UnalignedRead);
     }
 
-    if offset + 4 >= bytes.len() {
+    if offset + 4 > bytes.len() {
         return Err(Crunch64Error::OutOfBounds);
     }
 
