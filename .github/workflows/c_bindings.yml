@@ -57,6 +57,7 @@ jobs:
 
       - name: Build lib
         run: cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type ${{ matrix.crate-type }} --target ${{ matrix.target }} --release
+
       - name: Package
         run: |
           mkdir -p package/lib package/include
@@ -64,9 +65,9 @@ jobs:
           cp -r c_bindings/* package/include/
           cd release && tar -czf ../${{ matrix.target }}.tar.gz *
 
-        - name: Upload archive
-          uses: actions/upload-artifact@v3
-          with:
-            name: ${{ matrix.target }}
-            path: |
-              ${{ matrix.target }}.tar.gz
+      - name: Upload archive
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.target }}
+          path: |
+            ${{ matrix.target }}.tar.gz
