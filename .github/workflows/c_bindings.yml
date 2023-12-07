@@ -57,7 +57,6 @@ jobs:
 
       - name: Build lib
         run: cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type=${{ matrix.crate-type }} --target ${{ matrix.target }} --release
-
       - name: Package
         run: |
           mkdir -p package/lib package/include
