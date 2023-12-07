@@ -13,27 +13,27 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - target: x86_64-pc-windows-gnu
-          archive: zip
-        - target: x86_64-unknown-linux-musl
-          archive: tar.gz
-        - target: x86_64-apple-darwin
-          archive: zip
+          - target: x86_64-pc-windows-gnu
+            archive: zip
+          - target: x86_64-unknown-linux-musl
+            archive: tar.gz
+          - target: x86_64-apple-darwin
+            archive: zip
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Build lib
-      run: cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type=staticlib --target ${{ matrix.target }}
+      - name: Build lib
+        run: cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type=staticlib --target ${{ matrix.target }}
 
-    - name: Make C test programs
-      run: make
+      - name: Make C test programs
+        run: make
 
-    - name: Test Yay0
-      run: ./c_bindings_tests/single_yay0.elf
+      - name: Test Yay0
+        run: ./c_bindings_tests/single_yay0.elf
 
-    - name: Test Yaz0
-      run: ./c_bindings_tests/single_yaz0.elf
+      - name: Test Yaz0
+        run: ./c_bindings_tests/single_yaz0.elf
 
   release:
     name: Release for ${{ matrix.target }}
@@ -42,32 +42,32 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - target: x86_64-pc-windows-gnu
-          archive: zip
-          crate-type: staticlib
-        - target: x86_64-unknown-linux-musl
-          archive: tar.gz
-          crate-type: staticlib
-        - target: x86_64-apple-darwin
-          archive: zip
-          crate-type: staticlib
+          - target: x86_64-pc-windows-gnu
+            archive: zip
+            crate-type: staticlib
+          - target: x86_64-unknown-linux-musl
+            archive: tar.gz
+            crate-type: staticlib
+          - target: x86_64-apple-darwin
+            archive: zip
+            crate-type: staticlib
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Build lib
-      run: cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type=${{ matrix.crate-type }} --target ${{ matrix.target }} --release
+      - name: Build lib
+        run: cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type=${{ matrix.crate-type }} --target ${{ matrix.target }} --release
 
-    - name: Package
-      run: |
-        mkdir -p package/lib package/include
-        find  target/release/ -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -exec cp {} package/lib/ \;
-        cp -r c_bindings/* package/include/
-        cd release && tar -czf ../${{ matrix.target }}.tar.gz *
+      - name: Package
+        run: |
+          mkdir -p package/lib package/include
+          find  target/release/ -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -exec cp {} package/lib/ \;
+          cp -r c_bindings/* package/include/
+          cd release && tar -czf ../${{ matrix.target }}.tar.gz *
 
-      - name: Upload archive
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.target }}
-          path: |
-            ${{ matrix.target }}.tar.gz
+        - name: Upload archive
+          uses: actions/upload-artifact@v3
+          with:
+            name: ${{ matrix.target }}
+            path: |
+              ${{ matrix.target }}.tar.gz
