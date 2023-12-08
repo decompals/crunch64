@@ -68,9 +68,9 @@ jobs:
 
       - name: Package
         run: |
-          tree target/release
+          tree target/${{ matrix.target }}
           mkdir -p package/lib package/include
-          find target/release/${{ matrix.target }} -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -print -exec cp {} package/lib/ \;
+          find target/${{ matrix.target }}/release -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -print -exec cp {} package/lib/ \;
           cp -r c_bindings/* package/include/
           tree package
           cd package && tar -czf ../${{ matrix.target }}.tar.gz *
