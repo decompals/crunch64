@@ -45,16 +45,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        target: [x86_64-pc-windows-gnu, x86_64-apple-darwin, x86_64-unknown-linux-musl, x86_64-unknown-linux-gnu]
+        crate-type: [staticlib, cdylib]
         include:
           - target: x86_64-pc-windows-gnu
             archive: zip
-            crate-type: staticlib
-          - target: x86_64-unknown-linux-musl
-            archive: tar.gz
-            crate-type: staticlib
           - target: x86_64-apple-darwin
             archive: zip
-            crate-type: staticlib
+          - target: x86_64-unknown-linux-musl
+            archive: tar.gz
+          - target: x86_64-unknown-linux-gnu
+            archive: tar.gz
 
     steps:
       - name: Checkout repo
@@ -66,14 +67,22 @@ jobs:
       - name: Build lib
         run: cargo rustc --manifest-path lib/Cargo.toml --lib --release --crate-type ${{ matrix.crate-type }} --target ${{ matrix.target }}
 
-      - name: Package
+      - name: Move files for packaging
         run: |
-          tree target/${{ matrix.target }}
           mkdir -p package/lib package/include
           find target/${{ matrix.target }}/release -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -print -exec cp {} package/lib/ \;
           cp -r c_bindings/* package/include/
           tree package
-          cd package && tar -czf ../${{ matrix.target }}.tar.gz *
+
+      - name: Package .tar.gz
+        if: matrix.archive == 'tar.gz'
+        run: |
+          cd package && tar -czf ../crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.tar.gz *
+
+      - name: Package .zip
+        if: matrix.archive == 'zip'
+        run: |
+          cd package && zip -r ../crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip *
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
