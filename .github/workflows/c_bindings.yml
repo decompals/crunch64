@@ -55,6 +55,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install target
+        run: rustup target add ${{ matrix.target }}
+
       - name: Build lib
         run: cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type ${{ matrix.crate-type }} --target ${{ matrix.target }} --release
 
