@@ -69,7 +69,7 @@ jobs:
       - name: Package
         run: |
           mkdir -p package/lib package/include
-          find  target/release/ -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -print -exec cp {} package/lib/ \;
+          find  lib/target/release/ -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -print -exec cp {} package/lib/ \;
           cp -r c_bindings/* package/include/
           cd package && tar -czf ../${{ matrix.target }}.tar.gz *
 
