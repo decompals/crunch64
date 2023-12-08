@@ -73,7 +73,7 @@ jobs:
       - name: Move files for packaging
         run: |
           mkdir -p package/lib package/include
-          find target/${{ matrix.target }}/release -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -print -exec cp {} package/lib/ \;
+          cp target/${{ matrix.target }}/release/libcrunch64.a package/lib/ || cp target/${{ matrix.target }}/release/crunch64.lib package/lib/
           cp -r c_bindings/* package/include/
           cp LICENSE package/crunch64.LICENSE
           cp README.md package/crunch64.README.md
