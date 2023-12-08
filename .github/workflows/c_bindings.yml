@@ -7,7 +7,7 @@ env:
 
 jobs:
   test-c-bindings:
-    name: Test C bindings on ${{ matrix.target }}
+    name: Test C bindings
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
