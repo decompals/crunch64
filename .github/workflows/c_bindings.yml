@@ -65,6 +65,8 @@ jobs:
           mkdir -p package/lib package/include
           find target/${{ matrix.target }}/release -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -print -exec cp {} package/lib/ \;
           cp -r c_bindings/* package/include/
+          cp LICENSE package/crunch64.LICENSE
+          cp README.md package/crunch64.README.md
           tree package
 
       - name: Package .tar.gz
