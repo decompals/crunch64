@@ -21,7 +21,11 @@ jobs:
             archive: zip
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install target
+        run: rustup target add ${{ matrix.target }}
 
       - name: Build lib
         run: cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type=staticlib --target ${{ matrix.target }}
@@ -53,7 +57,8 @@ jobs:
             crate-type: staticlib
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
       - name: Install target
         run: rustup target add ${{ matrix.target }}
@@ -66,7 +71,7 @@ jobs:
           mkdir -p package/lib package/include
           find  target/release/ -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -exec cp {} package/lib/ \;
           cp -r c_bindings/* package/include/
-          cd release && tar -czf ../${{ matrix.target }}.tar.gz *
+          cd package && tar -czf ../${{ matrix.target }}.tar.gz *
 
       - name: Upload archive
         uses: actions/upload-artifact@v3
