@@ -32,7 +32,7 @@ jobs:
       fail-fast: false
       matrix:
         target: [x86_64-pc-windows-gnu, x86_64-pc-windows-msvc, x86_64-apple-darwin, x86_64-unknown-linux-musl, x86_64-unknown-linux-gnu]
-        crate-type: [staticlib, cdylib]
+        crate-type: [staticlib]
         include:
           - target: x86_64-pc-windows-gnu
             archive: zip
@@ -44,15 +44,6 @@ jobs:
             archive: tar.gz
           - target: x86_64-unknown-linux-gnu
             archive: tar.gz
-        exclude:
-          - target: x86_64-pc-windows-gnu
-            crate-type: cdylib # linker `x86_64-w64-mingw32-gcc` not found
-          - target: x86_64-pc-windows-msvc
-            crate-type: cdylib # note: the msvc targets depend on the msvc linker but `link.exe` was not found
-          - target: x86_64-apple-darwin
-            crate-type: cdylib # note: cc: error: unrecognized command-line option '-arch'
-          - target: x86_64-unknown-linux-musl
-            crate-type: cdylib # musl doesn't support cdylib
 
     steps:
       - name: Checkout repo
