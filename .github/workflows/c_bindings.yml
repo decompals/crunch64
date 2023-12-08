@@ -64,12 +64,12 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Build lib
-        run: cargo rustc --manifest-path lib/Cargo.toml --lib --crate-type ${{ matrix.crate-type }} --target ${{ matrix.target }} --release
+        run: cargo rustc --manifest-path lib/Cargo.toml --lib --release --crate-type ${{ matrix.crate-type }} --target ${{ matrix.target }}
 
       - name: Package
         run: |
           mkdir -p package/lib package/include
-          find target/release/ -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -print -exec cp {} package/lib/ \;
+          find target/release/${{ matrix.target }}/release -maxdepth 1 -name "libcrunch64.*" -not -name "*.d" -print -exec cp {} package/lib/ \;
           cp -r c_bindings/* package/include/
           tree package
           tree target/
