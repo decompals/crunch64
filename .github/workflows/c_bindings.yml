@@ -45,6 +45,8 @@ jobs:
         exclude:
           - target: x86_64-pc-windows-gnu
             crate-type: cdylib # linker `x86_64-w64-mingw32-gcc` not found
+          - target: x86_64-apple-darwin
+            crate-type: cdylib # note: cc: error: unrecognized command-line option '-arch'
           - target: x86_64-unknown-linux-musl
             crate-type: cdylib # musl doesn't support cdylib
 
