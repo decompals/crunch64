@@ -1,9 +1,15 @@
 #ifndef CRUNCH64_YAZ0_H
 #define CRUNCH64_YAZ0_H
+#pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 /**
  * @brief Get a size big enough to allocate a buffer that can fit the uncompressed data produced by uncompressing `src`.
@@ -78,5 +84,9 @@ bool crunch64_compress_yaz0_bound(size_t *dst_size, size_t src_len, const uint8_
  * @param src[in] Pointer to the decompressed data.
  */
 bool crunch64_compress_yaz0(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -3,3 +3,5 @@ target/
 *.Yay0
 *.Yaz0
 *.elf
+
+.vscode/settings.json
