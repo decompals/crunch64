@@ -27,7 +27,7 @@ jobs:
 
   release:
     name: Release ${{ matrix.crate-type }} for ${{ matrix.target }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -42,20 +42,22 @@ jobs:
             archive: tar.gz
           - target: x86_64-unknown-linux-gnu
             archive: tar.gz
-        exclude:
-          - target: x86_64-pc-windows-gnu
-            crate-type: cdylib # linker `x86_64-w64-mingw32-gcc` not found
-          - target: x86_64-apple-darwin
-            crate-type: cdylib # note: cc: error: unrecognized command-line option '-arch'
-          - target: x86_64-unknown-linux-musl
-            crate-type: cdylib # musl doesn't support cdylib
+        # exclude:
+        #   - target: x86_64-pc-windows-gnu
+        #     crate-type: cdylib # linker `x86_64-w64-mingw32-gcc` not found
+        #   - target: x86_64-apple-darwin
+        #     crate-type: cdylib # note: cc: error: unrecognized command-line option '-arch'
+        #   - target: x86_64-unknown-linux-musl
+        #     crate-type: cdylib # musl doesn't support cdylib
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install target
-        run: rustup target add ${{ matrix.target }}
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
       - name: Build lib
         run: cargo rustc --manifest-path lib/Cargo.toml --lib --release --crate-type ${{ matrix.crate-type }} --target ${{ matrix.target }}
