@@ -1,10 +1,6 @@
-name: Rust
+name: Test Rust code
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push, pull_request]
 
 env:
   CARGO_TERM_COLOR: always
@@ -18,18 +14,21 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Run cargo clippy
         run: cargo clippy --all -- -D warnings
+
   macos-check:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - name: Test
         run: cargo test --all-features
+
   ubuntu-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Test
         run: cargo test --all-features
+
   windows-check:
     runs-on: windows-latest
     steps:
