@@ -43,7 +43,7 @@ pub(crate) fn u8_vec_from_pointer_array(
     let mut bytes = Vec::with_capacity(src_len);
 
     for i in 0..src_len {
-        bytes.push(unsafe { *src.offset(i as isize) });
+        bytes.push(unsafe { *src.add(i) });
     }
 
     Ok(bytes)
@@ -66,7 +66,7 @@ pub(crate) fn set_pointer_array_from_u8_array(
 
     for (i, b) in src.iter().enumerate() {
         unsafe {
-            *dst.offset(i as isize) = *b;
+            *dst.add(i) = *b;
         }
     }
     unsafe {

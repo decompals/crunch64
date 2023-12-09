@@ -11,7 +11,7 @@ fn parse_header(bytes: &[u8]) -> Result<usize, Crunch64Error> {
         return Err(Crunch64Error::InvalidYaz0Header);
     }
 
-    if &bytes[8..0x10] != &[0u8; 8] {
+    if bytes[8..0x10] != [0u8; 8] {
         return Err(Crunch64Error::InvalidYaz0Header);
     }
 
@@ -221,7 +221,7 @@ mod c_bindings {
 
         match super::parse_header(&bytes) {
             Err(e) => return e,
-            Ok(value) => unsafe { *dst_size = value as usize },
+            Ok(value) => unsafe { *dst_size = value },
         }
 
         super::Crunch64Error::Okay
@@ -248,9 +248,8 @@ mod c_bindings {
             Ok(d) => d,
         };
 
-        match super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
-            Err(e) => return e,
-            Ok(_) => (),
+        if let Err(e) = super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
+            return e
         }
 
         super::Crunch64Error::Okay
@@ -295,9 +294,8 @@ mod c_bindings {
             Ok(d) => d,
         };
 
-        match super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
-            Err(e) => return e,
-            Ok(_) => (),
+        if let Err(e) = super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
+            return e
         }
 
         super::Crunch64Error::Okay
