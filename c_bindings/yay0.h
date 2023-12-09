@@ -6,6 +6,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "crunch64_error.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -24,7 +26,7 @@ extern "C"
  * @param src_len Size of `src`
  * @param src[in] Compressed Yay0 data
  */
-bool crunch64_decompress_yay0_bound(size_t *dst_size, size_t src_len, const uint8_t *const src);
+Crunch64Error crunch64_decompress_yay0_bound(size_t *dst_size, size_t src_len, const uint8_t *const src);
 
 /**
  * @brief Decompresses the data pointed by `src` and puts that data into `dst`.
@@ -45,7 +47,7 @@ bool crunch64_decompress_yay0_bound(size_t *dst_size, size_t src_len, const uint
  * @param src_len The length of the data pointed by `src`.
  * @param src[in] Pointer to compressed data. Must contain the Yay0 header.
  */
-bool crunch64_decompress_yay0(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
+Crunch64Error crunch64_decompress_yay0(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
 
 /**
  * @brief Get a size big enough to allocate a buffer that can fit the compressed data produced by compressing `src`.
@@ -60,7 +62,7 @@ bool crunch64_decompress_yay0(size_t *dst_len, uint8_t *dst, size_t src_len, con
  * @param src_len Size of `src`
  * @param src[in] Data that would be compressed
  */
-bool crunch64_compress_yay0_bound(size_t *dst_size, size_t src_len, const uint8_t *const src);
+Crunch64Error crunch64_compress_yay0_bound(size_t *dst_size, size_t src_len, const uint8_t *const src);
 
 /**
  * @brief Compresses the data pointed by `src` and puts that data into `dst`.
@@ -83,7 +85,7 @@ bool crunch64_compress_yay0_bound(size_t *dst_size, size_t src_len, const uint8_
  * @param src_len The length of the data pointed by `src`.
  * @param src[in] Pointer to the decompressed data.
  */
-bool crunch64_compress_yay0(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
+Crunch64Error crunch64_compress_yay0(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
 
 #ifdef __cplusplus
 }

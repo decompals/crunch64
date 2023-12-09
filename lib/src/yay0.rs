@@ -211,26 +211,26 @@ mod c_bindings {
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
-    ) -> bool {
+    ) -> super::Crunch64Error {
         if src_len < 0x10 {
-            return false;
+            return super::Crunch64Error::OutOfBounds;
         }
 
         if dst_size.is_null() || src.is_null() {
-            return false;
+            return super::Crunch64Error::NullPointer;
         }
 
         let bytes = match super::utils::u8_vec_from_pointer_array(0x10, src) {
-            Err(_) => return false,
+            Err(e) => return e,
             Ok(d) => d,
         };
 
         match super::parse_header(&bytes) {
-            Err(_) => return false,
+            Err(e) => return e,
             Ok((value, _, _)) => unsafe { *dst_size = value as usize },
         }
 
-        true
+        super::Crunch64Error::Okay
     }
 
     #[no_mangle]
@@ -239,25 +239,27 @@ mod c_bindings {
         dst: *mut u8,
         src_len: usize,
         src: *const u8,
-    ) -> bool {
+    ) -> super::Crunch64Error {
         if dst_len.is_null() || dst.is_null() || src.is_null() {
-            return false;
+            return super::Crunch64Error::NullPointer;
         }
 
         let bytes = match super::utils::u8_vec_from_pointer_array(src_len, src) {
-            Err(_) => return false,
+            Err(e) => return e,
             Ok(d) => d,
         };
 
-        match super::decompress_yay0(&bytes) {
-            Err(_) => return false,
-            Ok(dec) => match super::utils::set_pointer_array_from_u8_array(dst_len, dst, &dec) {
-                Err(_) => return false,
-                Ok(_) => (),
-            },
+        let data = match super::decompress_yay0(&bytes) {
+            Err(e) => return e,
+            Ok(d) => d,
+        };
+
+        match super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
+            Err(e) => return e,
+            Ok(_) => (),
         }
 
-        true
+        super::Crunch64Error::Okay
     }
 
     #[no_mangle]
@@ -265,17 +267,17 @@ mod c_bindings {
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
-    ) -> bool {
+    ) -> super::Crunch64Error {
         if dst_size.is_null() || src.is_null() {
-            return false;
+            return super::Crunch64Error::NullPointer;
         }
 
         match super::size_for_compressed_buffer(src_len) {
-            Err(_) => return false,
+            Err(e) => return e,
             Ok(uncompressed_size) => unsafe { *dst_size = uncompressed_size },
         }
 
-        true
+        super::Crunch64Error::Okay
     }
 
     #[no_mangle]
@@ -284,25 +286,27 @@ mod c_bindings {
         dst: *mut u8,
         src_len: usize,
         src: *const u8,
-    ) -> bool {
+    ) -> super::Crunch64Error {
         if dst_len.is_null() || dst.is_null() || src.is_null() {
-            return false;
+            return super::Crunch64Error::NullPointer;
         }
 
         let bytes = match super::utils::u8_vec_from_pointer_array(src_len, src) {
-            Err(_) => return false,
+            Err(e) => return e,
             Ok(d) => d,
         };
 
-        match super::compress_yay0(&bytes) {
-            Err(_) => return false,
-            Ok(data) => match super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
-                Err(_) => return false,
-                Ok(_) => (),
-            },
+        let data = match super::compress_yay0(&bytes) {
+            Err(e) => return e,
+            Ok(d) => d,
+        };
+
+        match super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
+            Err(e) => return e,
+            Ok(_) => (),
         }
 
-        true
+        super::Crunch64Error::Okay
     }
 }
 

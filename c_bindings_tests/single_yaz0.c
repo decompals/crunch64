@@ -72,8 +72,8 @@ bool decompress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t 
     size_t decompressed_size;
     uint8_t *decompressed_data = NULL;
 
-    bool size_request_ok = crunch64_decompress_yaz0_bound(&decompressed_size, src_size, src);
-    if (!size_request_ok)
+    Crunch64Error size_request_ok = crunch64_decompress_yaz0_bound(&decompressed_size, src_size, src);
+    if (size_request_ok != Crunch64Error_Okay)
     {
         fprintf(stderr, " failed to request size for buffer\n");
         return false;
@@ -86,8 +86,8 @@ bool decompress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t 
         return false;
     }
 
-    bool decompress_ok = crunch64_decompress_yaz0(&decompressed_size, decompressed_data, src_size, src);
-    if (!decompress_ok)
+    Crunch64Error decompress_ok = crunch64_decompress_yaz0(&decompressed_size, decompressed_data, src_size, src);
+    if (decompress_ok != Crunch64Error_Okay)
     {
         fprintf(stderr, " failed to decompress data\n");
         free(decompressed_data);
@@ -110,8 +110,8 @@ bool compress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t *s
     assert(dst != NULL);
     assert(src != NULL);
 
-    bool size_request_ok = crunch64_compress_yaz0_bound(&compressed_size, src_size, src);
-    if (!size_request_ok)
+    Crunch64Error size_request_ok = crunch64_compress_yaz0_bound(&compressed_size, src_size, src);
+    if (size_request_ok != Crunch64Error_Okay)
     {
         fprintf(stderr, " failed to request size for buffer\n");
         return false;
@@ -124,8 +124,8 @@ bool compress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t *s
         return false;
     }
 
-    bool compress_ok = crunch64_compress_yaz0(&compressed_size, compressed_data, src_size, src);
-    if (!compress_ok)
+    Crunch64Error compress_ok = crunch64_compress_yaz0(&compressed_size, compressed_data, src_size, src);
+    if (compress_ok != Crunch64Error_Okay)
     {
         fprintf(stderr, " failed to compress data\n");
         free(compressed_data);
