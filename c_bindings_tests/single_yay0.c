@@ -293,22 +293,37 @@ bool test_cycle_compressed(size_t compressed_data_size, uint8_t *compressed_data
     return true;
 }
 
-#define BIN_PATH "test_data/x86-64_rabbitizer.bin"
-#define COMPRESSED_PATH "test_data/x86-64_rabbitizer.bin.Yay0"
+void print_usage(int argc, char *argv[])
+{
+    (void)argc;
 
-int main(void)
+    fprintf(stderr, "Usage: %s bin_file compressed_file\n", argv[0]);
+    fprintf(stderr, "\n");
+    fprintf(stderr, "This programs tests compression and decompression produces matching output\n");
+}
+
+int main(int argc, char *argv[])
 {
     int ret = 0;
 
-    fprintf(stderr, "Reading file %s\n", BIN_PATH);
+    if (argc < 2)
+    {
+        print_usage(argc, argv);
+        return -1;
+    }
+
+    const char *bin_path = argv[1];
+    const char *compressed_path = argv[2];
+
+    fprintf(stderr, "Reading file %s\n", bin_path);
     size_t bin_size = 0;
-    uint8_t *bin = read_binary_file(BIN_PATH, &bin_size);
+    uint8_t *bin = read_binary_file(bin_path, &bin_size);
     assert(bin_size > 0);
     assert(bin != NULL);
 
-    fprintf(stderr, "Reading file %s\n", COMPRESSED_PATH);
+    fprintf(stderr, "Reading file %s\n", compressed_path);
     size_t compressed_data_size = 0;
-    uint8_t *compressed_data = read_binary_file(COMPRESSED_PATH, &compressed_data_size);
+    uint8_t *compressed_data = read_binary_file(compressed_path, &compressed_data_size);
     assert(compressed_data_size > 0);
     assert(compressed_data != NULL);
 

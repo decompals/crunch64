@@ -20,10 +20,10 @@ jobs:
         run: make
 
       - name: Test Yay0
-        run: ./c_bindings_tests/single_yay0.elf
+        run: ./c_bindings_tests/test_yay0.sh
 
       - name: Test Yaz0
-        run: ./c_bindings_tests/single_yaz0.elf
+        run: ./c_bindings_tests/test_yaz0.sh
 
   release:
     name: Release ${{ matrix.crate-type }} for ${{ matrix.target }}
