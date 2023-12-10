@@ -5,11 +5,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "single_yay0.elf",
+            "name": "test_yay0.elf",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/c_bindings_tests/single_yay0.elf",
-            "args": [],
+            "program": "${workspaceFolder}/c_bindings/tests/test_yay0.elf",
+            "args": ["${workspaceFolder}/test_data/ground.png", "${workspaceFolder}/test_data/ground.png.Yay0"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

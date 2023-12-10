@@ -9,6 +9,7 @@ license = "MIT"
 [lib]
 name = "crunch64"
 path = "src/lib.rs"
+crate-type = ["lib", "staticlib"]
 
 [dependencies]
 thiserror = "1.0"
