@@ -97,3 +97,15 @@ jobs:
           path: |
             crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip
           if-no-files-found: error
+
+      - name: Publish .tar.gz release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') && matrix.archive == 'tar.gz'
+        with:
+          files: crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.tar.gz
+
+      - name: Publish .zip release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') && matrix.archive == 'zip'
+        with:
+          files: crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip
