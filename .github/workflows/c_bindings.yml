@@ -55,7 +55,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build lib
-        run: cargo rustc --manifest-path lib/Cargo.toml --lib --release --crate-type ${{ matrix.crate-type }} --target ${{ matrix.target }}
+        run: cargo rustc --manifest-path lib/Cargo.toml --lib --features c_bindings --release --crate-type ${{ matrix.crate-type }} --target ${{ matrix.target }}
 
       - name: Print built files
         run: |

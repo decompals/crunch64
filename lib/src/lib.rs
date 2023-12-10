@@ -8,7 +8,7 @@ use yay0::{compress_yay0, decompress_yay0};
 use yaz0::{compress_yaz0, decompress_yaz0};
 
 /* This needs to be in sync with the C equivalent at `crunch64_error.h` */
-#[repr(u32)]
+#[cfg_attr(feature = "c_bindings", repr(u32))]
 #[derive(Copy, Clone, Debug, Error, PartialEq, Eq, Hash)]
 pub enum Crunch64Error {
     #[error("Not an error")]

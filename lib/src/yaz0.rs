@@ -199,6 +199,7 @@ pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     Ok(output.into_boxed_slice())
 }
 
+#[cfg(feature = "c_bindings")]
 mod c_bindings {
     #[no_mangle]
     pub extern "C" fn crunch64_decompress_yaz0_bound(

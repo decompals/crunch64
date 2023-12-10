@@ -29,7 +29,7 @@ CARGO_FLAGS ?=
 ifneq ($(BUILD_MODE), debug)
     CARGO_FLAGS += --release
 endif
-$(shell cargo rustc --manifest-path ../lib/Cargo.toml --lib --crate-type=staticlib $(CARGO_FLAGS))
+$(shell cargo rustc --manifest-path ../lib/Cargo.toml --lib --features c_bindings --crate-type=staticlib $(CARGO_FLAGS))
 
 
 %.elf: %.c $(LIB)

@@ -32,6 +32,7 @@ pub fn read_u32(bytes: &[u8], offset: usize) -> Result<u32, Crunch64Error> {
     }
 }
 
+#[cfg(feature = "c_bindings")]
 pub(crate) fn u8_vec_from_pointer_array(
     src_len: usize,
     src: *const u8,
@@ -49,6 +50,7 @@ pub(crate) fn u8_vec_from_pointer_array(
     Ok(bytes)
 }
 
+#[cfg(feature = "c_bindings")]
 pub(crate) fn set_pointer_array_from_u8_array(
     dst_len: *mut usize,
     dst: *mut u8,
