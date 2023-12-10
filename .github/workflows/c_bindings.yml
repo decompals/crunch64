@@ -17,13 +17,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Make C test programs
-        run: make
+        run: make -C c_bindings BUILD_MODE=release
 
       - name: Test Yay0
-        run: ./c_bindings_tests/test_yay0.sh
+        run: ./c_bindings/tests/test_yay0.sh
 
       - name: Test Yaz0
-        run: ./c_bindings_tests/test_yaz0.sh
+        run: ./c_bindings/tests/test_yaz0.sh
 
   release:
     name: Release ${{ matrix.crate-type }} for ${{ matrix.target }}
@@ -65,10 +65,15 @@ jobs:
         run: |
           mkdir -p package/lib package/include
           cp target/${{ matrix.target }}/release/libcrunch64.a package/lib/ || cp target/${{ matrix.target }}/release/crunch64.lib package/lib/
-          cp -r c_bindings/* package/include/
+          cp -r c_bindings/include/* package/include/
           cp LICENSE package/crunch64.LICENSE
           cp README.md package/crunch64.README.md
           tree package
+
+      - name: Check packaging is not empty
+        run: |
+          [ "$(ls -A c_bindings/include/)" ]
+          [ "$(ls -A c_bindings/lib/)" ]
 
       - name: Package .tar.gz
         if: matrix.archive == 'tar.gz'

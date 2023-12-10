@@ -1,12 +1,12 @@
-#ifndef CRUNCH64_YAY0_H
-#define CRUNCH64_YAY0_H
+#ifndef CRUNCH64_YAZ0_H
+#define CRUNCH64_YAZ0_H
 #pragma once
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#include "crunch64_error.h"
+#include "error.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -16,7 +16,7 @@ extern "C"
 /**
  * @brief Get a size big enough to allocate a buffer that can fit the uncompressed data produced by uncompressing `src`.
  *
- * The compressed data must include the Yay0 header.
+ * The compressed data must include the Yaz0 header.
  *
  * Returning `true` means the function succeeded and the requested size was put in `dst_size`.
  *
@@ -24,15 +24,15 @@ extern "C"
  *
  * @param dst_size[out] Will be set to the requested size.
  * @param src_len Size of `src`
- * @param src[in] Compressed Yay0 data
+ * @param src[in] Compressed Yaz0 data
  */
-Crunch64Error crunch64_decompress_yay0_bound(size_t *dst_size, size_t src_len, const uint8_t *const src);
+Crunch64Error crunch64_decompress_yaz0_bound(size_t *dst_size, size_t src_len, const uint8_t *const src);
 
 /**
  * @brief Decompresses the data pointed by `src` and puts that data into `dst`.
  *
  * The `dst` should point to a buffer big enough to hold the decompressed data. To know how big said buffer must be
- * refer to `crunch64_decompress_yay0_bound`.
+ * refer to `crunch64_decompress_yaz0_bound`.
  *
  * When this function is called, `dst_len` must point to the size of the `dst` pointer, allowing for range checking
  * and avoiding to write out of bounds.
@@ -45,14 +45,14 @@ Crunch64Error crunch64_decompress_yay0_bound(size_t *dst_size, size_t src_len, c
  * @param dst_len[in,out] Will be set to the decompressed size. It should point to the size of the `dst` buffer when the function is called.
  * @param dst[out] Pointer to buffer big enough to hold the decompressed data.
  * @param src_len The length of the data pointed by `src`.
- * @param src[in] Pointer to compressed data. Must contain the Yay0 header.
+ * @param src[in] Pointer to compressed data. Must contain the Yaz0 header.
  */
-Crunch64Error crunch64_decompress_yay0(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
+Crunch64Error crunch64_decompress_yaz0(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
 
 /**
  * @brief Get a size big enough to allocate a buffer that can fit the compressed data produced by compressing `src`.
  *
- * The compressed data must include the Yay0 header.
+ * The compressed data must include the Yaz0 header.
  *
  * Returning `true` means the function succeeded and the requested size was put in `dst_size`
  *
@@ -62,13 +62,13 @@ Crunch64Error crunch64_decompress_yay0(size_t *dst_len, uint8_t *dst, size_t src
  * @param src_len Size of `src`
  * @param src[in] Data that would be compressed
  */
-Crunch64Error crunch64_compress_yay0_bound(size_t *dst_size, size_t src_len, const uint8_t *const src);
+Crunch64Error crunch64_compress_yaz0_bound(size_t *dst_size, size_t src_len, const uint8_t *const src);
 
 /**
  * @brief Compresses the data pointed by `src` and puts that data into `dst`.
  *
  * The `dst` should point to a buffer big enough to hold the compressed data. To know how big said buffer must be
- * refer to `crunch64_compress_yay0_bound`.
+ * refer to `crunch64_compress_yaz0_bound`.
  *
  * When this function is called, `dst_len` must point to the size of the `dst` pointer, allowing for range checking
  * and avoiding to write out of bounds.
@@ -78,14 +78,14 @@ Crunch64Error crunch64_compress_yay0_bound(size_t *dst_size, size_t src_len, con
  *
  * If this function fails it will return `false`. `dst_size` and `dst` may have garbage data.
  *
- * `dst` will include the Yay0 header.
+ * `dst` will include the Yaz0 header.
  *
  * @param dst_len[in,out] Will be set to the compressed size. It should point to the size of the `dst` buffer when the function is called.
  * @param dst[out] Pointer to buffer big enough to hold the compressed data.
  * @param src_len The length of the data pointed by `src`.
  * @param src[in] Pointer to the decompressed data.
  */
-Crunch64Error crunch64_compress_yay0(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
+Crunch64Error crunch64_compress_yaz0(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
 
 #ifdef __cplusplus
 }

@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/c_bindings"
+                "${workspaceFolder}/c_bindings/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",
