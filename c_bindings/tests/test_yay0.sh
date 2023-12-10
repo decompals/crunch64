@@ -9,6 +9,6 @@ for i in test_data/*.Yay0; do
     # Remove the extension
     BIN_PATH=$(echo $i | sed 's/.Yay0//')
 
-    c_bindings/tests/single_yay0.elf $BIN_PATH $i
+    c_bindings/tests/test_yay0.elf $BIN_PATH $i
     echo
 done

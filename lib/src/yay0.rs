@@ -2,11 +2,11 @@ use crate::{utils, Crunch64Error};
 
 fn parse_header(bytes: &[u8]) -> Result<(usize, usize, usize), Crunch64Error> {
     if bytes.len() < 0x10 {
-        return Err(Crunch64Error::InvalidYaz0Header);
+        return Err(Crunch64Error::InvalidYay0Header);
     }
 
     if &bytes[0..4] != b"Yay0" {
-        return Err(Crunch64Error::InvalidYaz0Header);
+        return Err(Crunch64Error::InvalidYay0Header);
     }
 
     let decompressed_size = utils::read_u32(bytes, 0x4)? as usize;
