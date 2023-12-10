@@ -85,9 +85,13 @@ pub fn decompress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     Ok(ret.into_boxed_slice())
 }
 
+fn divide_round_up(a: usize, b: usize) -> usize {
+    (a + b - 1) / b
+}
+
 fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error> {
-    // TODO, figure out if we can reuse the Yaz0 equivalent
-    Ok(input_size * 4)
+    // Taken from Yaz0
+    Ok(input_size + divide_round_up(input_size, 8) + 0x10)
 }
 
 pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
