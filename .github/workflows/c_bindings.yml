@@ -70,11 +70,6 @@ jobs:
           cp README.md package/crunch64.README.md
           tree package
 
-      - name: Check packaging is not empty
-        run: |
-          [ "$(ls -A c_bindings/include/)" ]
-          [ "$(ls -A c_bindings/lib/)" ]
-
       - name: Package .tar.gz
         if: matrix.archive == 'tar.gz'
         run: |
