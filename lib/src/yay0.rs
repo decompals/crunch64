@@ -255,7 +255,7 @@ mod c_bindings {
         };
 
         if let Err(e) = super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
-            return e
+            return e;
         }
 
         super::Crunch64Error::Okay
@@ -301,7 +301,7 @@ mod c_bindings {
         };
 
         if let Err(e) = super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
-            return e
+            return e;
         }
 
         super::Crunch64Error::Okay
