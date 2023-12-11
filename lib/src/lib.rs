@@ -7,13 +7,17 @@ use thiserror::Error;
 use yay0::{compress_yay0, decompress_yay0};
 use yaz0::{compress_yaz0, decompress_yaz0};
 
+/* This needs to be in sync with the C equivalent at `crunch64_error.h` */
+#[cfg_attr(feature = "c_bindings", repr(u32))]
 #[derive(Copy, Clone, Debug, Error, PartialEq, Eq, Hash)]
 pub enum Crunch64Error {
-    #[error("File does not begin with Yay0 bytes")]
+    #[error("Not an error")]
+    Okay,
+    #[error("File does not begin with Yay0 header")]
     InvalidYay0Header,
-    #[error("File does not begin with Yaz0 bytes")]
+    #[error("File does not begin with Yaz0 header")]
     InvalidYaz0Header,
-    #[error("File does not begin with Mio0 bytes")]
+    #[error("File does not begin with Mio0 header")]
     InvalidMio0Header,
     #[error("Unsupported compression type")]
     UnsupportedCompressionType,
@@ -21,6 +25,10 @@ pub enum Crunch64Error {
     UnalignedRead,
     #[error("Failed to convert bytes")]
     ByteConversion,
+    #[error("Tried to access data out of bounds")]
+    OutOfBounds,
+    #[error("Pointer is null")]
+    NullPointer,
 }
 
 #[repr(u8)]

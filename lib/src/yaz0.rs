@@ -1,20 +1,39 @@
 // Based on https://gist.github.com/Mr-Wiseguy/6cca110d74b32b5bb19b76cfa2d7ab4f
 
-use crate::{
-    utils::{self},
-    Crunch64Error,
-};
+use crate::{utils, Crunch64Error};
 
-pub fn decompress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+fn parse_header(bytes: &[u8]) -> Result<usize, Crunch64Error> {
+    if bytes.len() < 0x10 {
+        return Err(Crunch64Error::InvalidYaz0Header);
+    }
+
     if &bytes[0..4] != b"Yaz0" {
         return Err(Crunch64Error::InvalidYaz0Header);
     }
+
+    if bytes[8..0x10] != [0u8; 8] {
+        return Err(Crunch64Error::InvalidYaz0Header);
+    }
+
+    Ok(utils::read_u32(bytes, 4)? as usize)
+}
+
+fn write_header(dst: &mut Vec<u8>, uncompressed_size: usize) -> Result<(), Crunch64Error> {
+    dst.extend(b"Yaz0");
+    dst.extend((uncompressed_size as u32).to_be_bytes());
+    // padding
+    dst.extend(&[0u8; 8]);
+
+    Ok(())
+}
+
+pub fn decompress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    let uncompressed_size = parse_header(bytes)?;
 
     // Skip the header
     let mut index_src = 0x10;
     let mut index_dst = 0;
 
-    let uncompressed_size = utils::read_u32(bytes, 4)? as usize;
     let mut ret = vec![0u8; uncompressed_size];
 
     while index_src < bytes.len() {
@@ -67,18 +86,19 @@ fn divide_round_up(a: usize, b: usize) -> usize {
     (a + b - 1) / b
 }
 
-pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-    let input_size = bytes.len();
+fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error> {
     // Worst-case size for output is zero compression on the input, meaning the input size plus the number of layout bytes plus the Yaz0 header.
     // There would be one layout byte for every 8 input bytes, so the worst-case size is:
     //   input_size + ROUND_UP_DIVIDE(input_size, 8) + 0x10
-    let mut output: Vec<u8> =
-        Vec::with_capacity(input_size + divide_round_up(input_size, 8) + 0x10);
+    Ok(input_size + divide_round_up(input_size, 8) + 0x10)
+}
 
-    output.extend(b"Yaz0");
-    output.extend((input_size as u32).to_be_bytes());
-    // padding
-    output.extend(&[0, 0, 0, 0, 0, 0, 0, 0]);
+pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    let input_size = bytes.len();
+
+    let mut output: Vec<u8> = Vec::with_capacity(size_for_compressed_buffer(input_size)?);
+
+    write_header(&mut output, input_size)?;
 
     output.push(0);
     let mut index_cur_layout_byte: usize = 0x10;
@@ -177,6 +197,110 @@ pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     }
 
     Ok(output.into_boxed_slice())
+}
+
+#[cfg(feature = "c_bindings")]
+mod c_bindings {
+    #[no_mangle]
+    pub extern "C" fn crunch64_decompress_yaz0_bound(
+        dst_size: *mut usize,
+        src_len: usize,
+        src: *const u8,
+    ) -> super::Crunch64Error {
+        if src_len < 0x10 {
+            return super::Crunch64Error::OutOfBounds;
+        }
+
+        if dst_size.is_null() || src.is_null() {
+            return super::Crunch64Error::NullPointer;
+        }
+
+        let bytes = match super::utils::u8_vec_from_pointer_array(0x10, src) {
+            Err(e) => return e,
+            Ok(data) => data,
+        };
+
+        match super::parse_header(&bytes) {
+            Err(e) => return e,
+            Ok(value) => unsafe { *dst_size = value },
+        }
+
+        super::Crunch64Error::Okay
+    }
+
+    #[no_mangle]
+    pub extern "C" fn crunch64_decompress_yaz0(
+        dst_len: *mut usize,
+        dst: *mut u8,
+        src_len: usize,
+        src: *const u8,
+    ) -> super::Crunch64Error {
+        if dst_len.is_null() || dst.is_null() || src.is_null() {
+            return super::Crunch64Error::NullPointer;
+        }
+
+        let bytes = match super::utils::u8_vec_from_pointer_array(src_len, src) {
+            Err(e) => return e,
+            Ok(d) => d,
+        };
+
+        let data = match super::decompress_yaz0(&bytes) {
+            Err(e) => return e,
+            Ok(d) => d,
+        };
+
+        if let Err(e) = super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
+            return e;
+        }
+
+        super::Crunch64Error::Okay
+    }
+
+    #[no_mangle]
+    pub extern "C" fn crunch64_compress_yaz0_bound(
+        dst_size: *mut usize,
+        src_len: usize,
+        src: *const u8,
+    ) -> super::Crunch64Error {
+        if dst_size.is_null() || src.is_null() {
+            return super::Crunch64Error::NullPointer;
+        }
+
+        match super::size_for_compressed_buffer(src_len) {
+            Err(e) => return e,
+            Ok(uncompressed_size) => unsafe { *dst_size = uncompressed_size },
+        }
+
+        super::Crunch64Error::Okay
+    }
+
+    #[no_mangle]
+    pub extern "C" fn crunch64_compress_yaz0(
+        dst_len: *mut usize,
+        dst: *mut u8,
+        src_len: usize,
+        src: *const u8,
+    ) -> super::Crunch64Error {
+        if dst_len.is_null() || dst.is_null() || src.is_null() {
+            return super::Crunch64Error::NullPointer;
+        }
+
+        let bytes = match super::utils::u8_vec_from_pointer_array(src_len, src) {
+            Err(e) => return e,
+            Ok(d) => d,
+        };
+
+        let data = match super::compress_yaz0(&bytes) {
+            Err(e) => return e,
+            Ok(d) => d,
+        };
+
+        if let Err(e) = super::utils::set_pointer_array_from_u8_array(dst_len, dst, &data) {
+            return e;
+        }
+
+        super::Crunch64Error::Okay
+    }
 }
 
 #[cfg(test)]
