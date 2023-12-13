@@ -1,5 +1,6 @@
 [package]
 name = "crunch64"
+# This should be synced with pyproject.toml
 version = "0.1.0"
 edition = "2021"
 description = "A library for handling common compression formats for N64 games"
@@ -9,10 +10,10 @@ license = "MIT"
 [lib]
 name = "crunch64"
 path = "src/lib.rs"
-crate-type = ["lib", "staticlib"]
+crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
-pyo3 = {version="0.20.0", optional = true }
+pyo3 = {version="0.20.0", features = ["extension-module"], optional = true }
 thiserror = "1.0"
 
 [dev-dependencies]
