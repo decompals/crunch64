@@ -8,9 +8,9 @@ use yay0::{compress_yay0, decompress_yay0};
 use yaz0::{compress_yaz0, decompress_yaz0};
 
 #[cfg(feature = "python_bindings")]
-use pyo3::prelude::*;
-#[cfg(feature = "python_bindings")]
 use pyo3::exceptions::PyRuntimeError;
+#[cfg(feature = "python_bindings")]
+use pyo3::prelude::*;
 
 /* This needs to be in sync with the C equivalent at `crunch64_error.h` */
 #[cfg_attr(feature = "c_bindings", repr(u32))]

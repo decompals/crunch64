@@ -315,8 +315,8 @@ mod c_bindings {
 
 #[cfg(feature = "python_bindings")]
 pub(crate) mod python_bindings {
-    use std::borrow::Cow;
     use pyo3::prelude::*;
+    use std::borrow::Cow;
 
     #[pyfunction]
     pub(crate) fn decompress_yay0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
