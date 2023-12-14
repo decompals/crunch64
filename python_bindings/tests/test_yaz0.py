@@ -10,7 +10,7 @@ def test_matching_decompression(bin_data: bytes, comp_data: bytes) -> bool:
     print("Testing matching decompression:")
 
     print("    Decompressing: ", end="")
-    decompressed = crunch64.decompress_yaz0(comp_data)
+    decompressed = crunch64.yaz0.decompress(comp_data)
     print(" OK")
 
     print("    Validating: ", end="")
@@ -26,7 +26,7 @@ def test_matching_compression(bin_data: bytes, comp_data: bytes) -> bool:
     print("Testing matching decompression:")
 
     print("    Compressing: ", end="")
-    compressed = crunch64.compress_yaz0(bin_data)
+    compressed = crunch64.yaz0.compress(bin_data)
     print(" OK")
 
     print("    Validating: ", end="")
@@ -42,11 +42,11 @@ def test_cycle_decompressed(bin_data: bytes) -> bool:
     print("Testing cycle decompression:")
 
     print("    Compressing: ", end="")
-    compressed = crunch64.compress_yaz0(bin_data)
+    compressed = crunch64.yaz0.compress(bin_data)
     print(" OK")
 
     print("    Decompressing: ", end="")
-    dec = crunch64.decompress_yaz0(compressed)
+    dec = crunch64.yaz0.decompress(compressed)
     print(" OK")
 
     print("    Validating: ", end="")
@@ -62,11 +62,11 @@ def test_cycle_compressed(comp_data: bytes) -> bool:
     print("Testing cycle compression:")
 
     print("    Decompressing: ", end="")
-    dec = crunch64.decompress_yaz0(comp_data)
+    dec = crunch64.yaz0.decompress(comp_data)
     print(" OK")
 
     print("    Compressing: ", end="")
-    compressed = crunch64.compress_yaz0(dec)
+    compressed = crunch64.yaz0.compress(dec)
     print(" OK")
 
     print("    Validating: ", end="")
@@ -78,8 +78,10 @@ def test_cycle_compressed(comp_data: bytes) -> bool:
     return equal
 
 
+loop_run = False
 errors = 0
-for comp_path in Path("test_data").glob("*.yaz0"):
+for comp_path in Path("test_data").glob("*.Yaz0"):
+    loop_run = True
     bin_path = comp_path.with_suffix("")
 
     print(f"Reading {bin_path}")
@@ -98,5 +100,8 @@ for comp_path in Path("test_data").glob("*.yaz0"):
         errors += 1
 
     print()
+
+if not loop_run:
+    exit(-1)
 
 exit(errors)

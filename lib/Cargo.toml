@@ -22,4 +22,3 @@ rstest = "0.18.2"
 [features]
 c_bindings = []
 python_bindings = ["dep:pyo3"]
-# default = ["python_bindings"]

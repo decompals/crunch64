@@ -2,5 +2,5 @@
 
 from __future__ import annotations
 
-from .yay0 import *
-from .yaz0 import *
+from . import yay0 as yay0
+from . import yaz0 as yaz0
