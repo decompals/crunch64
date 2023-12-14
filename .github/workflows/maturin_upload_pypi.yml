@@ -31,7 +31,7 @@ jobs:
           python-version: '3.10'
       # maturin doesn't allow relative paths on pyproject.toml, so instead of `../README.md` we have to copy the readme here
       - name: Copy README.md
-        run: cp ../README.md .
+        run: cp README.md lib/README.md
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -59,7 +59,7 @@ jobs:
           architecture: ${{ matrix.target }}
       # maturin doesn't allow relative paths on pyproject.toml, so instead of `../README.md` we have to copy the readme here
       - name: Copy README.md
-        run: cp ../README.md .
+        run: cp README.md lib/README.md
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -85,7 +85,7 @@ jobs:
           python-version: '3.10'
       # maturin doesn't allow relative paths on pyproject.toml, so instead of `../README.md` we have to copy the readme here
       - name: Copy README.md
-        run: cp ../README.md .
+        run: cp README.md lib/README.md
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -105,7 +105,7 @@ jobs:
       - uses: actions/checkout@v3
       # maturin doesn't allow relative paths on pyproject.toml, so instead of `../README.md` we have to copy the readme here
       - name: Copy README.md
-        run: cp ../README.md .
+        run: cp README.md lib/README.md
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:

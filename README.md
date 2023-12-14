@@ -32,7 +32,7 @@ python3 -m pip install -U crunch64
 
 The development version is located in the Github repository. In case the user wants to get the latest and unreleased features then they can install the repo directly.
 
-Please note building the Python version requires `maturin`.
+Please note building the Python version from source requires the Rust toolchain and the `maturin` Python package.
 
 The recommended way to install a locally cloned repo is by using `pip`.
 
