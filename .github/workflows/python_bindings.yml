@@ -1,4 +1,4 @@
-name: Tests cases
+name: Python bindings
 
 # Build on every branch push, tag push, and pull request change:
 on: [push, pull_request]
@@ -11,6 +11,10 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
+
+    - name: Setup requirements
+      run: |
+        python3 -m pip install -U maturin
 
     - name: Install local crunch64
       run: python3 -m pip install ./lib
