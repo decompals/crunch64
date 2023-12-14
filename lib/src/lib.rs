@@ -7,6 +7,11 @@ use thiserror::Error;
 use yay0::{compress_yay0, decompress_yay0};
 use yaz0::{compress_yaz0, decompress_yaz0};
 
+#[cfg(feature = "python_bindings")]
+use pyo3::prelude::*;
+#[cfg(feature = "python_bindings")]
+use pyo3::exceptions::PyRuntimeError;
+
 /* This needs to be in sync with the C equivalent at `crunch64_error.h` */
 #[cfg_attr(feature = "c_bindings", repr(u32))]
 #[derive(Copy, Clone, Debug, Error, PartialEq, Eq, Hash)]
@@ -29,6 +34,13 @@ pub enum Crunch64Error {
     OutOfBounds,
     #[error("Pointer is null")]
     NullPointer,
+}
+
+#[cfg(feature = "python_bindings")]
+impl std::convert::From<Crunch64Error> for PyErr {
+    fn from(err: Crunch64Error) -> PyErr {
+        PyRuntimeError::new_err(err.to_string())
+    }
 }
 
 #[repr(u8)]
@@ -58,21 +70,12 @@ impl CompressionType {
 }
 
 #[cfg(feature = "python_bindings")]
-use pyo3::prelude::*;
-
-#[cfg(feature = "python_bindings")]
-#[pyfunction]
-/// Formats the sum of two numbers as string.
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
-
-#[cfg(feature = "python_bindings")]
 /// A Python module implemented in Rust. The name of this function must match
 /// the `lib.name` setting in the `Cargo.toml`, else Python will not be able to
 /// import the module.
 #[pymodule]
 fn crunch64(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    m.add_function(wrap_pyfunction!(yaz0::python_bindings::decompress_yaz0, m)?)?;
+    m.add_function(wrap_pyfunction!(yaz0::python_bindings::compress_yaz0, m)?)?;
     Ok(())
 }

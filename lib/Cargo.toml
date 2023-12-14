@@ -13,7 +13,7 @@ path = "src/lib.rs"
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
-pyo3 = {version="0.20.0", features = ["extension-module"], optional = true }
+pyo3 = { version="0.20.0", features = ["extension-module"], optional = true }
 thiserror = "1.0"
 
 [dev-dependencies]
@@ -22,3 +22,4 @@ rstest = "0.18.2"
 [features]
 c_bindings = []
 python_bindings = ["dep:pyo3"]
+# default = ["python_bindings"]
