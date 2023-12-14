@@ -27,7 +27,7 @@ fn write_header(dst: &mut Vec<u8>, uncompressed_size: usize) -> Result<(), Crunc
     Ok(())
 }
 
-pub fn decompress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+pub fn yaz0_decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let uncompressed_size = parse_header(bytes)?;
 
     // Skip the header
@@ -93,7 +93,7 @@ fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error>
     Ok(input_size + divide_round_up(input_size, 8) + 0x10)
 }
 
-pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+pub fn yaz0_compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let input_size = bytes.len();
 
     let mut output: Vec<u8> = Vec::with_capacity(size_for_compressed_buffer(input_size)?);
@@ -202,7 +202,7 @@ pub fn compress_yaz0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 #[cfg(feature = "c_bindings")]
 mod c_bindings {
     #[no_mangle]
-    pub extern "C" fn crunch64_decompress_yaz0_bound(
+    pub extern "C" fn crunch64_yaz0_decompress_bound(
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
@@ -229,7 +229,7 @@ mod c_bindings {
     }
 
     #[no_mangle]
-    pub extern "C" fn crunch64_decompress_yaz0(
+    pub extern "C" fn crunch64_yaz0_decompress(
         dst_len: *mut usize,
         dst: *mut u8,
         src_len: usize,
@@ -244,7 +244,7 @@ mod c_bindings {
             Ok(d) => d,
         };
 
-        let data = match super::decompress_yaz0(&bytes) {
+        let data = match super::yaz0_decompress(&bytes) {
             Err(e) => return e,
             Ok(d) => d,
         };
@@ -257,7 +257,7 @@ mod c_bindings {
     }
 
     #[no_mangle]
-    pub extern "C" fn crunch64_compress_yaz0_bound(
+    pub extern "C" fn crunch64_yaz0_compress_bound(
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
@@ -275,7 +275,7 @@ mod c_bindings {
     }
 
     #[no_mangle]
-    pub extern "C" fn crunch64_compress_yaz0(
+    pub extern "C" fn crunch64_yaz0_compress(
         dst_len: *mut usize,
         dst: *mut u8,
         src_len: usize,
@@ -290,7 +290,7 @@ mod c_bindings {
             Ok(d) => d,
         };
 
-        let data = match super::compress_yaz0(&bytes) {
+        let data = match super::yaz0_compress(&bytes) {
             Err(e) => return e,
             Ok(d) => d,
         };
@@ -337,7 +337,7 @@ mod tests {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let decompressed: Box<[u8]> = super::decompress_yaz0(compressed_file)?;
+        let decompressed: Box<[u8]> = super::yaz0_decompress(compressed_file)?;
         assert_eq!(decompressed_file, decompressed.as_ref());
         Ok(())
     }
@@ -349,7 +349,7 @@ mod tests {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let compressed = super::compress_yaz0(decompressed_file.as_slice())?;
+        let compressed = super::yaz0_compress(decompressed_file.as_slice())?;
         assert_eq!(compressed_file, compressed.as_ref());
         Ok(())
     }
@@ -362,7 +362,7 @@ mod tests {
 
         assert_eq!(
             decompressed_file,
-            super::decompress_yaz0(&super::compress_yaz0(decompressed_file.as_ref())?)?.as_ref()
+            super::yaz0_decompress(&super::yaz0_compress(decompressed_file.as_ref())?)?.as_ref()
         );
         Ok(())
     }
@@ -375,7 +375,7 @@ mod tests {
 
         assert_eq!(
             compressed_file,
-            super::compress_yaz0(&super::decompress_yaz0(compressed_file.as_ref())?)?.as_ref()
+            super::yaz0_compress(&super::yaz0_decompress(compressed_file.as_ref())?)?.as_ref()
         );
         Ok(())
     }
