@@ -77,5 +77,7 @@ impl CompressionType {
 fn crunch64(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(yaz0::python_bindings::decompress_yaz0, m)?)?;
     m.add_function(wrap_pyfunction!(yaz0::python_bindings::compress_yaz0, m)?)?;
+    m.add_function(wrap_pyfunction!(yay0::python_bindings::decompress_yay0, m)?)?;
+    m.add_function(wrap_pyfunction!(yay0::python_bindings::compress_yay0, m)?)?;
     Ok(())
 }
