@@ -4,8 +4,6 @@ pub mod yaz0;
 mod utils;
 
 use thiserror::Error;
-use yay0::{yay0_compress, yay0_decompress};
-use yaz0::{yaz0_compress, yaz0_decompress};
 
 /* This needs to be in sync with the C equivalent at `crunch64_error.h` */
 #[cfg_attr(feature = "c_bindings", repr(u32))]
@@ -42,16 +40,16 @@ pub enum CompressionType {
 impl CompressionType {
     pub fn decompress(self: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
         match self {
-            CompressionType::Yay0 => yay0_decompress(bytes),
-            CompressionType::Yaz0 => yaz0_decompress(bytes),
+            CompressionType::Yay0 => yay0::decompress(bytes),
+            CompressionType::Yaz0 => yaz0::decompress(bytes),
             _ => Err(Crunch64Error::UnsupportedCompressionType),
         }
     }
 
     pub fn compress(self: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
         match self {
-            CompressionType::Yay0 => yay0_compress(bytes),
-            CompressionType::Yaz0 => yaz0_compress(bytes),
+            CompressionType::Yay0 => yay0::compress(bytes),
+            CompressionType::Yaz0 => yaz0::compress(bytes),
             _ => Err(Crunch64Error::UnsupportedCompressionType),
         }
     }
