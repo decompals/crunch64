@@ -6,9 +6,7 @@ import crunch64
 from pathlib import Path
 
 
-def test_matching_decompression(
-    bin_data: bytes, comp_data: bytes
-) -> bool:
+def test_matching_decompression(bin_data: bytes, comp_data: bytes) -> bool:
     print("Testing matching decompression:")
 
     print("    Decompressing: ", end="")
@@ -23,9 +21,8 @@ def test_matching_decompression(
         print(" data doesn't match")
     return equal
 
-def test_matching_compression(
-    bin_data: bytes, comp_data: bytes
-) -> bool:
+
+def test_matching_compression(bin_data: bytes, comp_data: bytes) -> bool:
     print("Testing matching decompression:")
 
     print("    Compressing: ", end="")
@@ -40,9 +37,8 @@ def test_matching_compression(
         print(" data doesn't match")
     return equal
 
-def test_cycle_decompressed(
-    bin_data: bytes
-) -> bool:
+
+def test_cycle_decompressed(bin_data: bytes) -> bool:
     print("Testing cycle decompression:")
 
     print("    Compressing: ", end="")
@@ -61,9 +57,8 @@ def test_cycle_decompressed(
         print(" data doesn't match")
     return equal
 
-def test_cycle_compressed(
-    comp_data: bytes
-) -> bool:
+
+def test_cycle_compressed(comp_data: bytes) -> bool:
     print("Testing cycle compression:")
 
     print("    Decompressing: ", end="")
@@ -84,7 +79,7 @@ def test_cycle_compressed(
 
 
 errors = 0
-for comp_path in Path('test_data').glob('*.yaz0'):
+for comp_path in Path("test_data").glob("*.yaz0"):
     bin_path = comp_path.with_suffix("")
 
     print(f"Reading {bin_path}")
