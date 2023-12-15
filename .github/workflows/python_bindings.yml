@@ -7,6 +7,8 @@ jobs:
   tests_cases:
     name: Tests cases
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
 
     steps:
     - name: Checkout repo

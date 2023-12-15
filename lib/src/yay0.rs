@@ -320,12 +320,12 @@ pub(crate) mod python_bindings {
 
     #[pyfunction]
     pub(crate) fn decompress_yay0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
-        Ok(Cow::Owned(super::decompress_yay0(bytes)?.into()))
+        Ok(Cow::Owned(super::decompress(bytes)?.into()))
     }
 
     #[pyfunction]
     pub(crate) fn compress_yay0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
-        Ok(Cow::Owned(super::compress_yay0(bytes)?.into()))
+        Ok(Cow::Owned(super::compress(bytes)?.into()))
     }
 }
 
