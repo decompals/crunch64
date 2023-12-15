@@ -30,7 +30,7 @@ fn write_header(
     Ok(())
 }
 
-pub fn decompress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let (decompressed_size, link_table_offset, chunk_offset) = parse_header(bytes)?;
 
     let mut link_table_idx = link_table_offset;
@@ -94,7 +94,7 @@ fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error>
     Ok(input_size + divide_round_up(input_size, 8) + 0x10)
 }
 
-pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let input_size = bytes.len();
 
     let mut pp: usize = 0;
@@ -212,7 +212,7 @@ pub fn compress_yay0(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 #[cfg(feature = "c_bindings")]
 mod c_bindings {
     #[no_mangle]
-    pub extern "C" fn crunch64_decompress_yay0_bound(
+    pub extern "C" fn crunch64_yay0_decompress_bound(
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
@@ -239,7 +239,7 @@ mod c_bindings {
     }
 
     #[no_mangle]
-    pub extern "C" fn crunch64_decompress_yay0(
+    pub extern "C" fn crunch64_yay0_decompress(
         dst_len: *mut usize,
         dst: *mut u8,
         src_len: usize,
@@ -254,7 +254,7 @@ mod c_bindings {
             Ok(d) => d,
         };
 
-        let data = match super::decompress_yay0(&bytes) {
+        let data = match super::decompress(&bytes) {
             Err(e) => return e,
             Ok(d) => d,
         };
@@ -267,7 +267,7 @@ mod c_bindings {
     }
 
     #[no_mangle]
-    pub extern "C" fn crunch64_compress_yay0_bound(
+    pub extern "C" fn crunch64_yay0_compress_bound(
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
@@ -285,7 +285,7 @@ mod c_bindings {
     }
 
     #[no_mangle]
-    pub extern "C" fn crunch64_compress_yay0(
+    pub extern "C" fn crunch64_yay0_compress(
         dst_len: *mut usize,
         dst: *mut u8,
         src_len: usize,
@@ -300,7 +300,7 @@ mod c_bindings {
             Ok(d) => d,
         };
 
-        let data = match super::compress_yay0(&bytes) {
+        let data = match super::compress(&bytes) {
             Err(e) => return e,
             Ok(d) => d,
         };
@@ -363,7 +363,7 @@ mod tests {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let decompressed = super::decompress_yay0(compressed_file)?;
+        let decompressed = super::decompress(compressed_file)?;
         assert_eq!(decompressed_file, decompressed.as_ref());
         Ok(())
     }
@@ -375,7 +375,7 @@ mod tests {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let compressed = super::compress_yay0(decompressed_file.as_slice())?;
+        let compressed = super::compress(decompressed_file.as_slice())?;
         assert_eq!(compressed_file, compressed.as_ref());
         Ok(())
     }
@@ -388,7 +388,7 @@ mod tests {
 
         assert_eq!(
             decompressed_file,
-            super::decompress_yay0(&super::compress_yay0(decompressed_file.as_ref())?)?.as_ref()
+            super::decompress(&super::compress(decompressed_file.as_ref())?)?.as_ref()
         );
         Ok(())
     }
@@ -401,7 +401,7 @@ mod tests {
 
         assert_eq!(
             compressed_file,
-            super::compress_yay0(&super::decompress_yay0(compressed_file.as_ref())?)?.as_ref()
+            super::compress(&super::decompress(compressed_file.as_ref())?)?.as_ref()
         );
         Ok(())
     }

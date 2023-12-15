@@ -11,7 +11,7 @@ bool decompress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t 
     size_t decompressed_size;
     uint8_t *decompressed_data = NULL;
 
-    Crunch64Error size_request_ok = crunch64_decompress_yaz0_bound(&decompressed_size, src_size, src);
+    Crunch64Error size_request_ok = crunch64_yaz0_decompress_bound(&decompressed_size, src_size, src);
     if (size_request_ok != Crunch64Error_Okay)
     {
         fprintf(stderr, " failed to request size for buffer. Reason: %s\n", get_crunch64_error_str(size_request_ok));
@@ -25,7 +25,7 @@ bool decompress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t 
         return false;
     }
 
-    Crunch64Error decompress_ok = crunch64_decompress_yaz0(&decompressed_size, decompressed_data, src_size, src);
+    Crunch64Error decompress_ok = crunch64_yaz0_decompress(&decompressed_size, decompressed_data, src_size, src);
     if (decompress_ok != Crunch64Error_Okay)
     {
         fprintf(stderr, " failed to decompress data. Reason: %s\n", get_crunch64_error_str(decompress_ok));
@@ -49,7 +49,7 @@ bool compress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t *s
     assert(dst != NULL);
     assert(src != NULL);
 
-    Crunch64Error size_request_ok = crunch64_compress_yaz0_bound(&compressed_size, src_size, src);
+    Crunch64Error size_request_ok = crunch64_yaz0_compress_bound(&compressed_size, src_size, src);
     if (size_request_ok != Crunch64Error_Okay)
     {
         fprintf(stderr, " failed to request size for buffer. Reason: %s\n", get_crunch64_error_str(size_request_ok));
@@ -63,7 +63,7 @@ bool compress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t *s
         return false;
     }
 
-    Crunch64Error compress_ok = crunch64_compress_yaz0(&compressed_size, compressed_data, src_size, src);
+    Crunch64Error compress_ok = crunch64_yaz0_compress(&compressed_size, compressed_data, src_size, src);
     if (compress_ok != Crunch64Error_Okay)
     {
         fprintf(stderr, " failed to decompress data. Reason: %s\n", get_crunch64_error_str(compress_ok));
