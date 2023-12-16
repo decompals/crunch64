@@ -1,6 +1,10 @@
+name: Rust crate release
+
 on:
-    release:
-      types: [created]
+  push:
+  pull_request:
+  workflow_dispatch:
+
 jobs:
   release:
     name: release ${{ matrix.target }}
@@ -8,19 +12,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
+        include: # https://github.com/rust-build/rust-build.action#supported-targets
           - target: x86_64-pc-windows-gnu
-            archive: zip
-          - target: x86_64-pc-windows-msvc
             archive: zip
           - target: x86_64-apple-darwin
             archive: zip
           - target: x86_64-unknown-linux-musl
             archive: tar.gz
-          - target: x86_64-unknown-linux-gnu
-            archive: tar.gz
+
     steps:
-      - uses: actions/checkout@master
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Compile and release
         uses: rust-build/rust-build.action@v1.4.4
         env:
@@ -32,11 +35,16 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name:
+        uses: actions-rs/toolchain@v1
         with:
-            toolchain: stable
-            override: true
+          toolchain: stable
+          override: true
+
       - uses: katyo/publish-crates@v2
+        if: "startsWith(github.ref, 'refs/tags/')"
         with:
-            registry-token: ${{ secrets.CRATE_AUTH_TOKEN }}
+          registry-token: ${{ secrets.CRATE_AUTH_TOKEN }}
