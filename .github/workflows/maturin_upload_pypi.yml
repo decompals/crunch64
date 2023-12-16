@@ -7,11 +7,6 @@ name: Upload to PyPI
 
 on:
   push:
-    branches:
-      - main
-      - master
-    tags:
-      - '*'
   pull_request:
   workflow_dispatch:
 
@@ -34,7 +29,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ../dist --find-interpreter
           sccache: 'true'
           manylinux: auto
           working-directory: lib/
@@ -43,6 +38,7 @@ jobs:
         with:
           name: wheels
           path: dist
+          if-no-files-found: error
 
   windows:
     runs-on: windows-latest
@@ -60,7 +56,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ../dist --find-interpreter
           sccache: 'true'
           working-directory: lib/
       - name: Upload wheels
@@ -68,6 +64,7 @@ jobs:
         with:
           name: wheels
           path: dist
+          if-no-files-found: error
 
   macos:
     runs-on: macos-latest
@@ -84,7 +81,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ../dist --find-interpreter
           sccache: 'true'
           working-directory: lib/
       - name: Upload wheels
@@ -92,24 +89,29 @@ jobs:
         with:
           name: wheels
           path: dist
+          if-no-files-found: error
 
   sdist:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
-          args: --out dist
+          args: --out ../dist
           working-directory: lib/
+
       - name: Upload sdist
         uses: actions/upload-artifact@v3
         with:
           name: wheels
           path: dist
+          if-no-files-found: error
 
   release:
     name: Release
