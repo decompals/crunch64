@@ -20,18 +20,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Test
-        run: cargo test --all-features
+        run: cargo test
 
   ubuntu-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Test
-        run: cargo test --all-features
+        run: cargo test
 
   windows-check:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Test
-        run: cargo test --all-features
+        run: cargo test

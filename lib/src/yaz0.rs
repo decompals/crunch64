@@ -303,6 +303,22 @@ mod c_bindings {
     }
 }
 
+#[cfg(feature = "python_bindings")]
+pub(crate) mod python_bindings {
+    use pyo3::prelude::*;
+    use std::borrow::Cow;
+
+    #[pyfunction]
+    pub(crate) fn decompress_yaz0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
+        Ok(Cow::Owned(super::decompress(bytes)?.into()))
+    }
+
+    #[pyfunction]
+    pub(crate) fn compress_yaz0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
+        Ok(Cow::Owned(super::compress(bytes)?.into()))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::Crunch64Error;
