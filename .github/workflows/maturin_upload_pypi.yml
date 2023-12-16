@@ -29,7 +29,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ../dist --find-interpreter
           sccache: 'true'
           manylinux: auto
           working-directory: lib/
@@ -56,7 +56,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ../dist --find-interpreter
           sccache: 'true'
           working-directory: lib/
       - name: Upload wheels
@@ -81,7 +81,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist --find-interpreter
+          args: --release --out ../dist --find-interpreter
           sccache: 'true'
           working-directory: lib/
       - name: Upload wheels
@@ -103,7 +103,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
-          args: --out dist
+          args: --out ../dist
           working-directory: lib/
 
       - name: Upload sdist
