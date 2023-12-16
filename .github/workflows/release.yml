@@ -1,4 +1,4 @@
-name: Rust crate release
+name: Rust crate and cli release
 
 on:
   push:
@@ -24,14 +24,14 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Compile and release library
+      - name: Compile and release cli
         uses: rust-build/rust-build.action@v1.4.4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           RUSTTARGET: ${{ matrix.target }}
           ARCHIVE_TYPES: ${{ matrix.archive }}
-          SRC_DIR: lib/
+          SRC_DIR: cli/
 
   publish:
     runs-on: ubuntu-latest
