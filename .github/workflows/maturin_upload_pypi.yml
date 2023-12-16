@@ -7,11 +7,6 @@ name: Upload to PyPI
 
 on:
   push:
-    branches:
-      - main
-      - master
-    tags:
-      - '*'
   pull_request:
   workflow_dispatch:
 
@@ -101,13 +96,16 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
           args: --out dist
           working-directory: lib/
+
       - name: Upload sdist
         uses: actions/upload-artifact@v3
         with:
