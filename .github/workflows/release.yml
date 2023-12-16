@@ -38,7 +38,7 @@ jobs:
       - name: Upload cli artifact
         uses: actions/upload-artifact@v3
         with:
-          name: crunch64-cli
+          name: crunch64-cli-${{ matrix.target }}
           path: |
             ${{ steps.compile_cli.outputs.BUILT_ARCHIVE }}
             ${{ steps.compile_cli.outputs.BUILT_CHECKSUM }}
