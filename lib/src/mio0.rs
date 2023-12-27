@@ -208,3 +208,81 @@ pub(crate) mod python_bindings {
     //    Ok(Cow::Owned(super::compress(bytes)?.into()))
     //}
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::Crunch64Error;
+    use core::panic;
+    use rstest::rstest;
+    use std::{
+        fs::File,
+        io::{BufReader, Read},
+        path::PathBuf,
+    };
+
+    pub fn read_test_file(path: PathBuf) -> Vec<u8> {
+        let file = match File::open(path) {
+            Ok(file) => file,
+            Err(_error) => {
+                panic!("Failed to open file");
+            }
+        };
+
+        let mut buf_reader = BufReader::new(file);
+        let mut buffer = Vec::new();
+
+        let _ = buf_reader.read_to_end(&mut buffer);
+
+        buffer
+    }
+
+    #[rstest]
+    fn test_matching_decompression(
+        #[files("../test_data/*.MIO0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
+        let compressed_file = &read_test_file(path.clone());
+        let decompressed_file = &read_test_file(path.with_extension(""));
+
+        let decompressed = super::decompress(compressed_file)?;
+        assert_eq!(decompressed_file, decompressed.as_ref());
+        Ok(())
+    }
+
+    //#[rstest]
+    //fn test_matching_compression(
+    //    #[files("../test_data/*.MIO0")] path: PathBuf,
+    //) -> Result<(), Crunch64Error> {
+    //    let compressed_file = &read_test_file(path.clone());
+    //    let decompressed_file = &read_test_file(path.with_extension(""));
+//
+    //    let compressed = super::compress(decompressed_file.as_slice())?;
+    //    assert_eq!(compressed_file, compressed.as_ref());
+    //    Ok(())
+    //}
+
+    //#[rstest]
+    //fn test_cycle_decompressed(
+    //    #[files("../test_data/*.MIO0")] path: PathBuf,
+    //) -> Result<(), Crunch64Error> {
+    //    let decompressed_file = &read_test_file(path.with_extension(""));
+//
+    //    assert_eq!(
+    //        decompressed_file,
+    //        super::decompress(&super::compress(decompressed_file.as_ref())?)?.as_ref()
+    //    );
+    //    Ok(())
+    //}
+
+    //#[rstest]
+    //fn test_cycle_compressed(
+    //    #[files("../test_data/*.MIO0")] path: PathBuf,
+    //) -> Result<(), Crunch64Error> {
+    //    let compressed_file = &read_test_file(path);
+//
+    //    assert_eq!(
+    //        compressed_file,
+    //        super::compress(&super::decompress(compressed_file.as_ref())?)?.as_ref()
+    //    );
+    //    Ok(())
+    //}
+}
