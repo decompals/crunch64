@@ -48,3 +48,10 @@ python3 -m pip install "git+https://github.com/decompals/crunch64.git#egg=crunch
 ```
 
 NOTE: Installing the development version is not recommended unless you know what you are doing. Proceed at your own risk.
+
+## References
+
+- Yaz0
+  - Reference implementation by Mr-Wiseguy: <https://gist.github.com/Mr-Wiseguy/6cca110d74b32b5bb19b76cfa2d7ab4f>
+- MIO0
+  - Hack64.net docs: <https://hack64.net/wiki/doku.php?id=super_mario_64:mio0>
