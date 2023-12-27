@@ -33,8 +33,6 @@ pub enum Crunch64Error {
     OutOfBounds,
     #[error("Pointer is null")]
     NullPointer,
-    #[error("Data doesn't make sense. Maybe it is corrupted")]
-    CorruptData,
 }
 
 #[cfg(feature = "python_bindings")]

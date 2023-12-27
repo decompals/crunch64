@@ -225,7 +225,6 @@ const char *const crunch64_error_str[] = {
     [Crunch64Error_ByteConversion] = "Byte conversion",
     [Crunch64Error_OutOfBounds] = "Out of bounds",
     [Crunch64Error_NullPointer] = "Null pointer",
-    [Crunch64Error_CorruptData] = "Corrupt data",
 };
 
 const char *get_crunch64_error_str(Crunch64Error error) {

@@ -31,51 +31,41 @@ fn write_header(
 }
 
 pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-    let (decompressed_size, comp_offset, uncomp_offset) = parse_header(bytes)?;
+    let (decompressed_size, link_table_offset, chunk_offset) = parse_header(bytes)?;
 
-    let mut layout_data_index = 0x10;
-    let mut uncompressed_data_index = uncomp_offset;
-    let mut compressed_data_index = comp_offset;
+    let mut link_table_idx = link_table_offset;
+    let mut chunk_idx = chunk_offset;
+    let mut other_idx = 0x10;
 
     let mut mask_bit_counter = 0;
     let mut current_mask = 0;
 
+    // Preallocate result and index into it
     let mut idx: usize = 0;
     let mut ret: Vec<u8> = vec![0u8; decompressed_size];
 
     while idx < decompressed_size {
+        // If we're out of bits, get the next mask
         if mask_bit_counter == 0 {
-            current_mask = utils::read_u32(bytes, layout_data_index)?;
-            layout_data_index += 4;
+            current_mask = utils::read_u32(bytes, other_idx)?;
+            other_idx += 4;
             mask_bit_counter = 32;
         }
 
         if current_mask & 0x80000000 != 0 {
-            ret[idx] = bytes[uncompressed_data_index];
-            uncompressed_data_index += 1;
+            ret[idx] = bytes[chunk_idx];
             idx += 1;
+            chunk_idx += 1;
         } else {
-            let length_offset = utils::read_u16(bytes, compressed_data_index)?;
-            compressed_data_index += 2;
+            let link = utils::read_u16(bytes, link_table_idx)? as usize;
+            link_table_idx += 2;
 
-            let length = ((length_offset >> 12) + 3) as usize;
-            let index = ((length_offset & 0xFFF) + 1) as usize;
+            let offset = idx - (link & 0xFFF);
 
-            if index > idx {
-                return Err(Crunch64Error::CorruptData);
-            }
-            let offset = idx - index;
+            let count = (link >> 12) as usize + 3;
 
-            if !(3..=18).contains(&length) {
-                return Err(Crunch64Error::CorruptData);
-            }
-
-            if !(1..=4096).contains(&index) {
-                return Err(Crunch64Error::CorruptData);
-            }
-
-            for i in 0..length {
-                ret[idx] = ret[offset + i];
+            for i in 0..count {
+                ret[idx] = ret[offset + i - 1];
                 idx += 1;
             }
         }

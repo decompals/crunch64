@@ -57,10 +57,10 @@ pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             idx += 1;
             chunk_idx += 1;
         } else {
-            let link = utils::read_u16(bytes, link_table_idx)?;
+            let link = utils::read_u16(bytes, link_table_idx)? as usize;
             link_table_idx += 2;
 
-            let offset = idx as isize - (link as isize & 0xFFF);
+            let offset = idx - (link & 0xFFF);
 
             let mut count = (link >> 12) as usize;
 
@@ -73,7 +73,7 @@ pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             }
 
             for i in 0..count {
-                ret[idx] = ret[(offset + i as isize - 1) as usize];
+                ret[idx] = ret[offset + i - 1];
                 idx += 1;
             }
         }
