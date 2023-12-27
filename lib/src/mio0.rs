@@ -33,9 +33,7 @@ fn write_header(
 */
 
 pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-    let (decompressed_size,
-        comp_offset,
-        uncomp_offset) = parse_header(bytes)?;
+    let (decompressed_size, comp_offset, uncomp_offset) = parse_header(bytes)?;
 
     let mut layout_data_index = 0x10;
     let mut uncompressed_data_index = uncomp_offset;
@@ -63,14 +61,14 @@ pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             compressed_data_index += 2;
 
             let length = ((length_offset >> 12) + 3) as usize;
-            let index =  ((length_offset & 0xFFF) + 1) as usize;
+            let index = ((length_offset & 0xFFF) + 1) as usize;
             let offset = idx - index;
 
-            if ! (3 <= length && length <= 18) {
+            if !(3..=18).contains(&length) {
                 return Err(Crunch64Error::CorruptData);
             }
 
-            if !(1 <= index && index <= 4096) {
+            if !(1..=4096).contains(&index) {
                 return Err(Crunch64Error::CorruptData);
             }
 
@@ -254,7 +252,7 @@ mod tests {
     //) -> Result<(), Crunch64Error> {
     //    let compressed_file = &read_test_file(path.clone());
     //    let decompressed_file = &read_test_file(path.with_extension(""));
-//
+    //
     //    let compressed = super::compress(decompressed_file.as_slice())?;
     //    assert_eq!(compressed_file, compressed.as_ref());
     //    Ok(())
@@ -265,7 +263,7 @@ mod tests {
     //    #[files("../test_data/*.MIO0")] path: PathBuf,
     //) -> Result<(), Crunch64Error> {
     //    let decompressed_file = &read_test_file(path.with_extension(""));
-//
+    //
     //    assert_eq!(
     //        decompressed_file,
     //        super::decompress(&super::compress(decompressed_file.as_ref())?)?.as_ref()
@@ -278,7 +276,7 @@ mod tests {
     //    #[files("../test_data/*.MIO0")] path: PathBuf,
     //) -> Result<(), Crunch64Error> {
     //    let compressed_file = &read_test_file(path);
-//
+    //
     //    assert_eq!(
     //        compressed_file,
     //        super::compress(&super::decompress(compressed_file.as_ref())?)?.as_ref()
