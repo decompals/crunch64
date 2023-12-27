@@ -42,7 +42,6 @@ bool decompress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t 
 
 bool compress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t *src)
 {
-    #if 0
     size_t compressed_size;
     uint8_t *compressed_data = NULL;
 
@@ -76,9 +75,6 @@ bool compress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t *s
     *dst = compressed_data;
 
     fprintf(stderr, " OK\n");
-    #else
-    fprintf(stderr, " STUB\n");
-    #endif
 
     return true;
 }

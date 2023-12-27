@@ -16,7 +16,6 @@ fn parse_header(bytes: &[u8]) -> Result<(usize, usize, usize), Crunch64Error> {
     Ok((decompressed_size, link_table_offset, chunk_offset))
 }
 
-/*
 fn write_header(
     dst: &mut Vec<u8>,
     uncompressed_size: usize,
@@ -30,7 +29,6 @@ fn write_header(
 
     Ok(())
 }
-*/
 
 pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let (decompressed_size, comp_offset, uncomp_offset) = parse_header(bytes)?;
@@ -62,6 +60,10 @@ pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 
             let length = ((length_offset >> 12) + 3) as usize;
             let index = ((length_offset & 0xFFF) + 1) as usize;
+
+            if index > idx {
+                return Err(Crunch64Error::CorruptData);
+            }
             let offset = idx - index;
 
             if !(3..=18).contains(&length) {
@@ -83,6 +85,127 @@ pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     }
 
     Ok(ret.into_boxed_slice())
+}
+
+fn divide_round_up(a: usize, b: usize) -> usize {
+    (a + b - 1) / b
+}
+
+fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error> {
+    // Taken from Yaz0
+    Ok(input_size + divide_round_up(input_size, 8) + 0x10)
+}
+
+pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    let input_size = bytes.len();
+
+    let mut pp: usize = 0;
+    let mut index_cur_layout_byte: usize = 0;
+
+    let mut cmd: Vec<u32> = vec![0; 0x4000];
+    let mut pol: Vec<u16> = Vec::with_capacity(2 * 0x1000);
+    let mut def: Vec<u8> = Vec::with_capacity(4 * 0x1000);
+
+    let mut input_pos: usize = 0;
+    let mut cur_layout_bit: u32 = 0x80000000;
+
+    while input_pos < input_size {
+        let mut group_pos: i32 = 0;
+        let mut group_size: u32 = 0;
+
+        utils::search(
+            input_pos,
+            input_size,
+            &mut group_pos,
+            &mut group_size,
+            bytes,
+            18,
+        );
+
+        // If the group isn't larger than 2 bytes, copying the input without compression is smaller
+        if group_size <= 2 {
+            // Set the current layout bit to indicate that this is an uncompressed byte
+            cmd[index_cur_layout_byte] |= cur_layout_bit;
+            def.push(bytes[input_pos]);
+            input_pos += 1;
+        } else {
+            let mut new_size: u32 = 0;
+            let mut new_position: i32 = 0;
+
+            // Search for a new group after one position after the current one
+            utils::search(
+                input_pos + 1,
+                input_size,
+                &mut new_position,
+                &mut new_size,
+                bytes,
+                18,
+            );
+
+            // If the new group is better than the current group by at least 2 bytes, use it instead
+            if new_size >= group_size + 2 {
+                // Mark the current layout bit to skip compressing this byte, as the next input position yielded better compression
+                cmd[index_cur_layout_byte] |= cur_layout_bit;
+                def.push(bytes[input_pos]);
+                input_pos += 1;
+
+                // Advance to the next layout bit
+                cur_layout_bit >>= 1;
+
+                if cur_layout_bit == 0 {
+                    cur_layout_bit = 0x80000000;
+                    index_cur_layout_byte += 1;
+                    cmd[index_cur_layout_byte] = 0;
+                }
+
+                group_size = new_size;
+                group_pos = new_position;
+            }
+
+            // Calculate the offset for the current group
+            let group_offset = input_pos - group_pos as usize - 1;
+
+            assert!(group_size <= 18);
+            // Determine which encoding to use for the current group
+            pol.push((group_offset | (((group_size as u16 - 3) as usize) << 12)) as u16);
+            pp += 1;
+
+            // Move forward in the input by the size of the group
+            input_pos += group_size as usize;
+        }
+
+        // Advance to the next layout bit
+        cur_layout_bit >>= 1;
+
+        if cur_layout_bit == 0 {
+            cur_layout_bit = 0x80000000;
+            index_cur_layout_byte += 1;
+            cmd[index_cur_layout_byte] = 0;
+        }
+    }
+
+    if cur_layout_bit != 0x80000000 {
+        index_cur_layout_byte += 1;
+    }
+
+    let link_table_offset: usize = 4 * index_cur_layout_byte + 16;
+    let chunk_offset: usize = 2 * pp + link_table_offset;
+
+    let mut output: Vec<u8> = Vec::with_capacity(size_for_compressed_buffer(input_size)?);
+
+    write_header(&mut output, input_size, link_table_offset, chunk_offset)?;
+
+    for &value in &cmd[..index_cur_layout_byte] {
+        output.extend(&value.to_be_bytes());
+    }
+
+    for &value in &pol[..pp] {
+        output.extend(&value.to_be_bytes());
+    }
+
+    output.extend(&def);
+
+    Ok(output.into_boxed_slice())
 }
 
 #[cfg(feature = "c_bindings")]
@@ -142,7 +265,6 @@ mod c_bindings {
         super::Crunch64Error::Okay
     }
 
-    /*
     #[no_mangle]
     pub extern "C" fn crunch64_mio0_compress_bound(
         dst_size: *mut usize,
@@ -188,7 +310,6 @@ mod c_bindings {
 
         super::Crunch64Error::Okay
     }
-    */
 }
 
 #[cfg(feature = "python_bindings")]
@@ -201,10 +322,10 @@ pub(crate) mod python_bindings {
         Ok(Cow::Owned(super::decompress(bytes)?.into()))
     }
 
-    //#[pyfunction]
-    //pub(crate) fn compress_mio0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
-    //    Ok(Cow::Owned(super::compress(bytes)?.into()))
-    //}
+    #[pyfunction]
+    pub(crate) fn compress_mio0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
+        Ok(Cow::Owned(super::compress(bytes)?.into()))
+    }
 }
 
 #[cfg(test)]
@@ -246,41 +367,41 @@ mod tests {
         Ok(())
     }
 
-    //#[rstest]
-    //fn test_matching_compression(
-    //    #[files("../test_data/*.MIO0")] path: PathBuf,
-    //) -> Result<(), Crunch64Error> {
-    //    let compressed_file = &read_test_file(path.clone());
-    //    let decompressed_file = &read_test_file(path.with_extension(""));
-    //
-    //    let compressed = super::compress(decompressed_file.as_slice())?;
-    //    assert_eq!(compressed_file, compressed.as_ref());
-    //    Ok(())
-    //}
+    #[rstest]
+    fn test_matching_compression(
+        #[files("../test_data/*.MIO0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
+        let compressed_file = &read_test_file(path.clone());
+        let decompressed_file = &read_test_file(path.with_extension(""));
 
-    //#[rstest]
-    //fn test_cycle_decompressed(
-    //    #[files("../test_data/*.MIO0")] path: PathBuf,
-    //) -> Result<(), Crunch64Error> {
-    //    let decompressed_file = &read_test_file(path.with_extension(""));
-    //
-    //    assert_eq!(
-    //        decompressed_file,
-    //        super::decompress(&super::compress(decompressed_file.as_ref())?)?.as_ref()
-    //    );
-    //    Ok(())
-    //}
+        let compressed = super::compress(decompressed_file.as_slice())?;
+        assert_eq!(compressed_file, compressed.as_ref());
+        Ok(())
+    }
 
-    //#[rstest]
-    //fn test_cycle_compressed(
-    //    #[files("../test_data/*.MIO0")] path: PathBuf,
-    //) -> Result<(), Crunch64Error> {
-    //    let compressed_file = &read_test_file(path);
-    //
-    //    assert_eq!(
-    //        compressed_file,
-    //        super::compress(&super::decompress(compressed_file.as_ref())?)?.as_ref()
-    //    );
-    //    Ok(())
-    //}
+    #[rstest]
+    fn test_cycle_decompressed(
+        #[files("../test_data/*.MIO0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
+        let decompressed_file = &read_test_file(path.with_extension(""));
+
+        assert_eq!(
+            decompressed_file,
+            super::decompress(&super::compress(decompressed_file.as_ref())?)?.as_ref()
+        );
+        Ok(())
+    }
+
+    #[rstest]
+    fn test_cycle_compressed(
+        #[files("../test_data/*.MIO0")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
+        let compressed_file = &read_test_file(path);
+
+        assert_eq!(
+            compressed_file,
+            super::compress(&super::decompress(compressed_file.as_ref())?)?.as_ref()
+        );
+        Ok(())
+    }
 }

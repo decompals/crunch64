@@ -25,9 +25,6 @@ def test_matching_decompression(bin_data: bytes, comp_data: bytes) -> bool:
 def test_matching_compression(bin_data: bytes, comp_data: bytes) -> bool:
     print("Testing matching decompression:")
 
-    print("    STUB")
-    return True
-
     print("    Compressing: ", end="")
     compressed = crunch64.mio0.compress(bin_data)
     print(" OK")
@@ -43,9 +40,6 @@ def test_matching_compression(bin_data: bytes, comp_data: bytes) -> bool:
 
 def test_cycle_decompressed(bin_data: bytes) -> bool:
     print("Testing cycle decompression:")
-
-    print("    STUB")
-    return True
 
     print("    Compressing: ", end="")
     compressed = crunch64.mio0.compress(bin_data)
@@ -66,9 +60,6 @@ def test_cycle_decompressed(bin_data: bytes) -> bool:
 
 def test_cycle_compressed(comp_data: bytes) -> bool:
     print("Testing cycle compression:")
-
-    print("    STUB")
-    return True
 
     print("    Decompressing: ", end="")
     dec = crunch64.mio0.decompress(comp_data)

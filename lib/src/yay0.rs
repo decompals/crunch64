@@ -117,6 +117,7 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             &mut group_pos,
             &mut group_size,
             bytes,
+            0x111,
         );
 
         // If the group isn't larger than 2 bytes, copying the input without compression is smaller
@@ -136,6 +137,7 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
                 &mut new_position,
                 &mut new_size,
                 bytes,
+                0x111,
             );
 
             // If the new group is better than the current group by at least 2 bytes, use it instead

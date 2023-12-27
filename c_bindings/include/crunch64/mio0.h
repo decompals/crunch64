@@ -49,7 +49,6 @@ Crunch64Error crunch64_mio0_decompress_bound(size_t *dst_size, size_t src_len, c
  */
 Crunch64Error crunch64_mio0_decompress(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
 
-#if 0
 /**
  * @brief Get a size big enough to allocate a buffer that can fit the compressed data produced by compressing `src`.
  *
@@ -87,7 +86,6 @@ Crunch64Error crunch64_mio0_compress_bound(size_t *dst_size, size_t src_len, con
  * @param src[in] Pointer to the decompressed data.
  */
 Crunch64Error crunch64_mio0_compress(size_t *dst_len, uint8_t *dst, size_t src_len, const uint8_t *const src);
-#endif
 
 #ifdef __cplusplus
 }
