@@ -84,11 +84,12 @@ pub(crate) fn search(
     pos_out: &mut i32,
     size_out: &mut u32,
     data_in: &[u8],
+    max_match_length: usize,
 ) {
     let mut cur_size: usize = 3;
     let mut found_pos: isize = 0;
     let mut search_pos: usize = cmp::max(input_pos as isize - 0x1000, 0) as usize;
-    let search_size = cmp::min(input_size - input_pos, 0x111);
+    let search_size = cmp::min(input_size - input_pos, max_match_length);
 
     if search_size >= 3 {
         while search_pos < input_pos {

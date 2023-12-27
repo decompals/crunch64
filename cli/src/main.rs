@@ -33,7 +33,7 @@ fn main() {
     let compression_format = match args.format.as_str() {
         "Yay0" | "yay0" => CompressionType::Yay0,
         "Yaz0" | "yaz0" => CompressionType::Yaz0,
-        "Mio0" | "mio0" => CompressionType::Mio0,
+        "MIO0" | "Mio0" | "mio0" => CompressionType::Mio0,
         _ => {
             let mut cmd = Args::command();
             cmd.error(

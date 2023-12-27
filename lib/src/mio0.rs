@@ -1,82 +1,77 @@
-// Based on https://gist.github.com/Mr-Wiseguy/6cca110d74b32b5bb19b76cfa2d7ab4f
-
 use crate::{utils, Crunch64Error};
 
-fn parse_header(bytes: &[u8]) -> Result<usize, Crunch64Error> {
+fn parse_header(bytes: &[u8]) -> Result<(usize, usize, usize), Crunch64Error> {
     if bytes.len() < 0x10 {
-        return Err(Crunch64Error::InvalidYaz0Header);
+        return Err(Crunch64Error::InvalidMio0Header);
     }
 
-    if &bytes[0..4] != b"Yaz0" {
-        return Err(Crunch64Error::InvalidYaz0Header);
+    if &bytes[0..4] != b"MIO0" {
+        return Err(Crunch64Error::InvalidMio0Header);
     }
 
-    if bytes[8..0x10] != [0u8; 8] {
-        return Err(Crunch64Error::InvalidYaz0Header);
-    }
+    let decompressed_size = utils::read_u32(bytes, 0x4)? as usize;
+    let link_table_offset = utils::read_u32(bytes, 0x8)? as usize;
+    let chunk_offset = utils::read_u32(bytes, 0xC)? as usize;
 
-    Ok(utils::read_u32(bytes, 4)? as usize)
+    Ok((decompressed_size, link_table_offset, chunk_offset))
 }
 
-fn write_header(dst: &mut Vec<u8>, uncompressed_size: usize) -> Result<(), Crunch64Error> {
-    dst.extend(b"Yaz0");
+fn write_header(
+    dst: &mut Vec<u8>,
+    uncompressed_size: usize,
+    link_table_offset: usize,
+    chunk_offset: usize,
+) -> Result<(), Crunch64Error> {
+    dst.extend(b"MIO0");
     dst.extend((uncompressed_size as u32).to_be_bytes());
-    // padding
-    dst.extend(&[0u8; 8]);
+    dst.extend((link_table_offset as u32).to_be_bytes());
+    dst.extend((chunk_offset as u32).to_be_bytes());
 
     Ok(())
 }
 
 pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-    let uncompressed_size = parse_header(bytes)?;
+    let (decompressed_size, link_table_offset, chunk_offset) = parse_header(bytes)?;
 
-    // Skip the header
-    let mut index_src = 0x10;
-    let mut index_dst = 0;
+    let mut link_table_idx = link_table_offset;
+    let mut chunk_idx = chunk_offset;
+    let mut other_idx = 0x10;
 
-    let mut ret = vec![0u8; uncompressed_size];
+    let mut mask_bit_counter = 0;
+    let mut current_mask = 0;
 
-    while index_src < bytes.len() {
-        let mut layout_bit_index = 0;
-        let mut layout_bits = bytes[index_src];
-        index_src += 1;
+    // Preallocate result and index into it
+    let mut idx: usize = 0;
+    let mut ret: Vec<u8> = vec![0u8; decompressed_size];
 
-        while (layout_bit_index < 8) && (index_src < bytes.len()) && (index_dst < uncompressed_size)
-        {
-            if (layout_bits & 0x80) != 0 {
-                ret[index_dst] = bytes[index_src];
-                index_src += 1;
-                index_dst += 1;
-            } else {
-                let first_byte = bytes[index_src];
-                index_src += 1;
-                let second_byte = bytes[index_src];
-                index_src += 1;
-                let byte_pair = ((first_byte as u16) << 8) | (second_byte as u16);
-                let offset = (byte_pair & 0x0FFF) + 1;
-                let mut length: usize;
-
-                // Check how the group length is encoded
-                if (first_byte & 0xF0) == 0 {
-                    // 3 byte encoding, 0RRRNN
-                    let third_byte = bytes[index_src];
-                    index_src += 1;
-                    length = (third_byte as usize) + 0x12;
-                } else {
-                    // 2 byte encoding, NRRR
-                    length = (((byte_pair & 0xF000) >> 12) + 2) as usize;
-                }
-
-                while length > 0 {
-                    ret[index_dst] = ret[index_dst - offset as usize];
-                    index_dst += 1;
-                    length -= 1;
-                }
-            }
-
-            layout_bit_index += 1;
-            layout_bits <<= 1;
+    while idx < decompressed_size {
+        // If we're out of bits, get the next mask
+        if mask_bit_counter == 0 {
+            current_mask = utils::read_u32(bytes, other_idx)?;
+            other_idx += 4;
+            mask_bit_counter = 32;
         }
+
+        if current_mask & 0x80000000 != 0 {
+            ret[idx] = bytes[chunk_idx];
+            idx += 1;
+            chunk_idx += 1;
+        } else {
+            let link = utils::read_u16(bytes, link_table_idx)? as usize;
+            link_table_idx += 2;
+
+            let offset = idx - (link & 0xFFF);
+
+            let count = (link >> 12) as usize + 3;
+
+            for i in 0..count {
+                ret[idx] = ret[offset + i - 1];
+                idx += 1;
+            }
+        }
+
+        current_mask <<= 1;
+        mask_bit_counter -= 1;
     }
 
     Ok(ret.into_boxed_slice())
@@ -87,24 +82,22 @@ fn divide_round_up(a: usize, b: usize) -> usize {
 }
 
 fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error> {
-    // Worst-case size for output is zero compression on the input, meaning the input size plus the number of layout bytes plus the Yaz0 header.
-    // There would be one layout byte for every 8 input bytes, so the worst-case size is:
-    //   input_size + ROUND_UP_DIVIDE(input_size, 8) + 0x10
+    // Taken from Yaz0
     Ok(input_size + divide_round_up(input_size, 8) + 0x10)
 }
 
 pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let input_size = bytes.len();
 
-    let mut output: Vec<u8> = Vec::with_capacity(size_for_compressed_buffer(input_size)?);
+    let mut pp: usize = 0;
+    let mut index_cur_layout_byte: usize = 0;
 
-    write_header(&mut output, input_size)?;
+    let mut cmd: Vec<u32> = vec![0; 0x4000];
+    let mut pol: Vec<u16> = Vec::with_capacity(2 * 0x1000);
+    let mut def: Vec<u8> = Vec::with_capacity(4 * 0x1000);
 
-    output.push(0);
-    let mut index_cur_layout_byte: usize = 0x10;
-    let mut index_out_ptr: usize = index_cur_layout_byte + 1;
     let mut input_pos: usize = 0;
-    let mut cur_layout_bit: u8 = 0x80;
+    let mut cur_layout_bit: u32 = 0x80000000;
 
     while input_pos < input_size {
         let mut group_pos: i32 = 0;
@@ -116,16 +109,15 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             &mut group_pos,
             &mut group_size,
             bytes,
-            0x111,
+            18,
         );
 
         // If the group isn't larger than 2 bytes, copying the input without compression is smaller
         if group_size <= 2 {
             // Set the current layout bit to indicate that this is an uncompressed byte
-            output[index_cur_layout_byte] |= cur_layout_bit;
-            output.push(bytes[input_pos]);
+            cmd[index_cur_layout_byte] |= cur_layout_bit;
+            def.push(bytes[input_pos]);
             input_pos += 1;
-            index_out_ptr += 1;
         } else {
             let mut new_size: u32 = 0;
             let mut new_position: i32 = 0;
@@ -137,26 +129,23 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
                 &mut new_position,
                 &mut new_size,
                 bytes,
-                0x111,
+                18,
             );
 
             // If the new group is better than the current group by at least 2 bytes, use it instead
             if new_size >= group_size + 2 {
                 // Mark the current layout bit to skip compressing this byte, as the next input position yielded better compression
-                output[index_cur_layout_byte] |= cur_layout_bit;
-                // Copy the input byte to the output
-                output.push(bytes[input_pos]);
+                cmd[index_cur_layout_byte] |= cur_layout_bit;
+                def.push(bytes[input_pos]);
                 input_pos += 1;
-                index_out_ptr += 1;
 
                 // Advance to the next layout bit
                 cur_layout_bit >>= 1;
 
                 if cur_layout_bit == 0 {
-                    cur_layout_bit = 0x80;
-                    index_cur_layout_byte = index_out_ptr;
-                    output.push(0);
-                    index_out_ptr += 1;
+                    cur_layout_bit = 0x80000000;
+                    index_cur_layout_byte += 1;
+                    cmd[index_cur_layout_byte] = 0;
                 }
 
                 group_size = new_size;
@@ -164,24 +153,12 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             }
 
             // Calculate the offset for the current group
-            let group_offset: u32 = (input_pos as i32 - group_pos - 1) as u32;
+            let group_offset = input_pos - group_pos as usize - 1;
 
+            assert!(group_size <= 18);
             // Determine which encoding to use for the current group
-            if group_size >= 0x12 {
-                // Three bytes, 0RRRNN
-                output.push((group_offset >> 8) as u8);
-                index_out_ptr += 1;
-                output.push((group_offset & 0xFF) as u8);
-                index_out_ptr += 1;
-                output.push((group_size - 0x12) as u8);
-                index_out_ptr += 1;
-            } else {
-                // Two bytes, NRRR
-                output.push((group_offset >> 8) as u8 | ((group_size - 2) << 4) as u8);
-                index_out_ptr += 1;
-                output.push((group_offset & 0xFF) as u8);
-                index_out_ptr += 1;
-            }
+            pol.push((group_offset | (((group_size as u16 - 3) as usize) << 12)) as u16);
+            pp += 1;
 
             // Move forward in the input by the size of the group
             input_pos += group_size as usize;
@@ -191,12 +168,32 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
         cur_layout_bit >>= 1;
 
         if cur_layout_bit == 0 {
-            cur_layout_bit = 0x80;
-            index_cur_layout_byte = index_out_ptr;
-            output.push(0);
-            index_out_ptr += 1;
+            cur_layout_bit = 0x80000000;
+            index_cur_layout_byte += 1;
+            cmd[index_cur_layout_byte] = 0;
         }
     }
+
+    if cur_layout_bit != 0x80000000 {
+        index_cur_layout_byte += 1;
+    }
+
+    let link_table_offset: usize = 4 * index_cur_layout_byte + 16;
+    let chunk_offset: usize = 2 * pp + link_table_offset;
+
+    let mut output: Vec<u8> = Vec::with_capacity(size_for_compressed_buffer(input_size)?);
+
+    write_header(&mut output, input_size, link_table_offset, chunk_offset)?;
+
+    for &value in &cmd[..index_cur_layout_byte] {
+        output.extend(&value.to_be_bytes());
+    }
+
+    for &value in &pol[..pp] {
+        output.extend(&value.to_be_bytes());
+    }
+
+    output.extend(&def);
 
     Ok(output.into_boxed_slice())
 }
@@ -204,7 +201,7 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 #[cfg(feature = "c_bindings")]
 mod c_bindings {
     #[no_mangle]
-    pub extern "C" fn crunch64_yaz0_decompress_bound(
+    pub extern "C" fn crunch64_mio0_decompress_bound(
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
@@ -219,19 +216,19 @@ mod c_bindings {
 
         let bytes = match super::utils::u8_vec_from_pointer_array(0x10, src) {
             Err(e) => return e,
-            Ok(data) => data,
+            Ok(d) => d,
         };
 
         match super::parse_header(&bytes) {
             Err(e) => return e,
-            Ok(value) => unsafe { *dst_size = value },
+            Ok((value, _, _)) => unsafe { *dst_size = value },
         }
 
         super::Crunch64Error::Okay
     }
 
     #[no_mangle]
-    pub extern "C" fn crunch64_yaz0_decompress(
+    pub extern "C" fn crunch64_mio0_decompress(
         dst_len: *mut usize,
         dst: *mut u8,
         src_len: usize,
@@ -259,7 +256,7 @@ mod c_bindings {
     }
 
     #[no_mangle]
-    pub extern "C" fn crunch64_yaz0_compress_bound(
+    pub extern "C" fn crunch64_mio0_compress_bound(
         dst_size: *mut usize,
         src_len: usize,
         src: *const u8,
@@ -277,7 +274,7 @@ mod c_bindings {
     }
 
     #[no_mangle]
-    pub extern "C" fn crunch64_yaz0_compress(
+    pub extern "C" fn crunch64_mio0_compress(
         dst_len: *mut usize,
         dst: *mut u8,
         src_len: usize,
@@ -311,12 +308,12 @@ pub(crate) mod python_bindings {
     use std::borrow::Cow;
 
     #[pyfunction]
-    pub(crate) fn decompress_yaz0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
+    pub(crate) fn decompress_mio0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
         Ok(Cow::Owned(super::decompress(bytes)?.into()))
     }
 
     #[pyfunction]
-    pub(crate) fn compress_yaz0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
+    pub(crate) fn compress_mio0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
         Ok(Cow::Owned(super::compress(bytes)?.into()))
     }
 }
@@ -350,19 +347,19 @@ mod tests {
 
     #[rstest]
     fn test_matching_decompression(
-        #[files("../test_data/*.Yaz0")] path: PathBuf,
+        #[files("../test_data/*.MIO0")] path: PathBuf,
     ) -> Result<(), Crunch64Error> {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
 
-        let decompressed: Box<[u8]> = super::decompress(compressed_file)?;
+        let decompressed = super::decompress(compressed_file)?;
         assert_eq!(decompressed_file, decompressed.as_ref());
         Ok(())
     }
 
     #[rstest]
     fn test_matching_compression(
-        #[files("../test_data/*.Yaz0")] path: PathBuf,
+        #[files("../test_data/*.MIO0")] path: PathBuf,
     ) -> Result<(), Crunch64Error> {
         let compressed_file = &read_test_file(path.clone());
         let decompressed_file = &read_test_file(path.with_extension(""));
@@ -374,7 +371,7 @@ mod tests {
 
     #[rstest]
     fn test_cycle_decompressed(
-        #[files("../test_data/*.Yaz0")] path: PathBuf,
+        #[files("../test_data/*.MIO0")] path: PathBuf,
     ) -> Result<(), Crunch64Error> {
         let decompressed_file = &read_test_file(path.with_extension(""));
 
@@ -387,7 +384,7 @@ mod tests {
 
     #[rstest]
     fn test_cycle_compressed(
-        #[files("../test_data/*.Yaz0")] path: PathBuf,
+        #[files("../test_data/*.MIO0")] path: PathBuf,
     ) -> Result<(), Crunch64Error> {
         let compressed_file = &read_test_file(path);
 

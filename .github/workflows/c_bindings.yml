@@ -19,6 +19,9 @@ jobs:
       - name: Make C test programs
         run: make -C c_bindings BUILD_MODE=release
 
+      - name: Test MIO0
+        run: ./c_bindings/tests/test_mio0.sh
+
       - name: Test Yay0
         run: ./c_bindings/tests/test_yay0.sh
 
