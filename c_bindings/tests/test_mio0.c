@@ -42,6 +42,7 @@ bool decompress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t 
 
 bool compress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t *src)
 {
+    #if 0
     size_t compressed_size;
     uint8_t *compressed_data = NULL;
 
@@ -49,7 +50,6 @@ bool compress(size_t *dst_size, uint8_t **dst, size_t src_size, const uint8_t *s
     assert(dst != NULL);
     assert(src != NULL);
 
-    #if 0
     Crunch64Error size_request_ok = crunch64_mio0_compress_bound(&compressed_size, src_size, src);
     if (size_request_ok != Crunch64Error_Okay)
     {
