@@ -78,7 +78,7 @@ pub(crate) fn set_pointer_array_from_u8_array(
     Ok(())
 }
 
-pub(crate) fn search(input_pos: usize, data_in: &[u8], max_match_length: usize) -> (i32, u32) {
+pub(crate) fn search(input_pos: usize, data_in: &[u8], max_match_length: usize) -> (u32, u32) {
     let mut cur_size = 3;
     let mut found_pos = 0;
     let mut search_pos = cmp::max(input_pos as isize - 0x1000, 0) as usize;
@@ -108,7 +108,7 @@ pub(crate) fn search(input_pos: usize, data_in: &[u8], max_match_length: usize) 
         }
 
         if search_size == cur_size {
-            return ((found_offset + search_pos) as i32, cur_size as u32);
+            return ((found_offset + search_pos) as u32, cur_size as u32);
         }
 
         found_pos = (search_pos + found_offset) as isize;
@@ -116,7 +116,7 @@ pub(crate) fn search(input_pos: usize, data_in: &[u8], max_match_length: usize) 
         cur_size += 1;
     }
 
-    (found_pos as i32, cmp::max(cur_size as isize - 1, 0) as u32)
+    (found_pos as u32, cmp::max(cur_size as isize - 1, 0) as u32)
 }
 
 fn mischarsearch(pattern: &[u8], pattern_len: usize, data: &[u8], data_len: usize) -> usize {
@@ -127,7 +127,7 @@ fn mischarsearch(pattern: &[u8], pattern_len: usize, data: &[u8], data_len: usiz
     let mut j: isize;
 
     if pattern_len <= data_len {
-        initskip(pattern, pattern_len as i32, &mut skip_table);
+        initskip(pattern, pattern_len, &mut skip_table);
 
         i = pattern_len as isize - 1;
         loop {
@@ -160,10 +160,10 @@ fn mischarsearch(pattern: &[u8], pattern_len: usize, data: &[u8], data_len: usiz
     data_len
 }
 
-fn initskip(pattern: &[u8], len: i32, skip: &mut [u16; 256]) {
+fn initskip(pattern: &[u8], len: usize, skip: &mut [u16; 256]) {
     skip.fill(len as u16);
 
     for i in 0..len {
-        skip[pattern[i as usize] as usize] = (len - i - 1) as u16;
+        skip[pattern[i] as usize] = (len - i - 1) as u16;
     }
 }
