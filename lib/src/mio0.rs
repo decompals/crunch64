@@ -105,7 +105,6 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 
         utils::search(
             input_pos,
-            input_size,
             &mut group_pos,
             &mut group_size,
             bytes,
@@ -125,7 +124,6 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             // Search for a new group after one position after the current one
             utils::search(
                 input_pos + 1,
-                input_size,
                 &mut new_position,
                 &mut new_size,
                 bytes,

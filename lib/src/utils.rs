@@ -80,7 +80,6 @@ pub(crate) fn set_pointer_array_from_u8_array(
 
 pub(crate) fn search(
     input_pos: usize,
-    input_size: usize,
     pos_out: &mut i32,
     size_out: &mut u32,
     data_in: &[u8],
@@ -89,7 +88,7 @@ pub(crate) fn search(
     let mut cur_size: usize = 3;
     let mut found_pos: isize = 0;
     let mut search_pos: usize = cmp::max(input_pos as isize - 0x1000, 0) as usize;
-    let search_size = cmp::min(input_size - input_pos, max_match_length);
+    let search_size = cmp::min(data_in.len() - input_pos, max_match_length);
 
     if search_size >= 3 {
         while search_pos < input_pos {
