@@ -32,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python bindings.
 - C bindings.
 
-[unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/0.2.0...HEAD
-[0.2.0]: https://github.com/Decompollaborate/spimdisasm/compare/0.1.1...0.2.0
-[0.1.1]: https://github.com/Decompollaborate/spimdisasm/compare/0.1.0...0.1.1
+[unreleased]: https://github.com/decompals/crunch64/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/decompals/crunch64/compare/0.1.1...0.2.0
+[0.1.1]: https://github.com/decompals/crunch64/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/decompals/crunch64/releases/tag/0.1.0

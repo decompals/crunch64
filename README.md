@@ -49,6 +49,15 @@ python3 -m pip install "git+https://github.com/decompals/crunch64.git#egg=crunch
 
 NOTE: Installing the development version is not recommended unless you know what you are doing. Proceed at your own risk.
 
+## Versioning and changelog
+
+This library follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+To see what changed on each release check either the [CHANGELOG.md](CHANGELOG.md)
+file or check the [releases page on Github](https://github.com/decompals/crunch64/releases).
+You can also use [this link](https://github.com/decompals/crunch64/releases/latest)
+to check the latest release.
+
 ## References
 
 - Yaz0
