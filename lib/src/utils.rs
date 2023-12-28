@@ -90,45 +90,47 @@ pub(crate) fn search(
     let mut search_pos: usize = cmp::max(input_pos as isize - 0x1000, 0) as usize;
     let search_size = cmp::min(data_in.len() - input_pos, max_match_length);
 
-    if search_size >= 3 {
-        while search_pos < input_pos {
-            let found_offset = mischarsearch(
-                &data_in[input_pos..],
-                cur_size,
-                &data_in[search_pos..],
-                cur_size + input_pos - search_pos,
-            );
+    if search_size < 3 {
+        *pos_out = 0;
+        *size_out = 0;
+        return;
+    }
 
-            if found_offset >= input_pos - search_pos {
+    while search_pos < input_pos {
+        let found_offset = mischarsearch(
+            &data_in[input_pos..],
+            cur_size,
+            &data_in[search_pos..],
+            cur_size + input_pos - search_pos,
+        );
+
+        if found_offset >= input_pos - search_pos {
+            break;
+        }
+
+        while cur_size < search_size {
+            if data_in[cur_size + search_pos + found_offset] != data_in[cur_size + input_pos] {
                 break;
             }
-
-            while cur_size < search_size {
-                if data_in[cur_size + search_pos + found_offset] != data_in[cur_size + input_pos] {
-                    break;
-                }
-                cur_size += 1;
-            }
-
-            if search_size == cur_size {
-                *pos_out = (found_offset + search_pos) as i32;
-                *size_out = cur_size as u32;
-                return;
-            }
-
-            found_pos = (search_pos + found_offset) as isize;
-            search_pos = (found_pos + 1) as usize;
             cur_size += 1;
         }
 
-        *pos_out = found_pos as i32;
-        if cur_size > 3 {
-            cur_size -= 1;
+        if search_size == cur_size {
+            *pos_out = (found_offset + search_pos) as i32;
             *size_out = cur_size as u32;
             return;
         }
-    } else {
-        *pos_out = 0;
+
+        found_pos = (search_pos + found_offset) as isize;
+        search_pos = (found_pos + 1) as usize;
+        cur_size += 1;
+    }
+
+    *pos_out = found_pos as i32;
+    if cur_size > 3 {
+        cur_size -= 1;
+        *size_out = cur_size as u32;
+        return;
     }
     *size_out = 0;
 }
