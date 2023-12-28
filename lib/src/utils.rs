@@ -78,14 +78,10 @@ pub(crate) fn set_pointer_array_from_u8_array(
     Ok(())
 }
 
-pub(crate) fn search(
-    input_pos: usize,
-    data_in: &[u8],
-    max_match_length: usize,
-) -> (i32, u32) {
-    let mut cur_size: usize = 3;
-    let mut found_pos: isize = 0;
-    let mut search_pos: usize = cmp::max(input_pos as isize - 0x1000, 0) as usize;
+pub(crate) fn search(input_pos: usize, data_in: &[u8], max_match_length: usize) -> (i32, u32) {
+    let mut cur_size = 3;
+    let mut found_pos = 0;
+    let mut search_pos = cmp::max(input_pos as isize - 0x1000, 0) as usize;
     let search_size = cmp::min(data_in.len() - input_pos, max_match_length);
 
     if search_size < 3 {
@@ -120,12 +116,7 @@ pub(crate) fn search(
         cur_size += 1;
     }
 
-    if cur_size > 3 {
-        cur_size -= 1;
-        return (found_pos as i32, cur_size as u32);
-    }
-
-    (found_pos as i32, 0)
+    (found_pos as i32, cmp::max(cur_size as isize - 1, 0) as u32)
 }
 
 fn mischarsearch(pattern: &[u8], pattern_len: usize, data: &[u8], data_len: usize) -> usize {
