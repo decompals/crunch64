@@ -9,19 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Add a CHANGELOG.md file.
+- CHANGELOG.md file.
 
 ## [0.2.0] - 2023-12-28
 
 ### Added
 
-- Add MIO0 compression and decompression.
+- MIO0 compression and decompression.
 
 ## [0.1.1] - 2023-12-16
 
 ### Fixed
 
-- Fix CI for release.
+- CI for release.
 
 ## [0.1.0] - 2023-12-16 [YANKED]
 
