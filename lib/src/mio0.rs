@@ -287,14 +287,21 @@ pub(crate) mod python_bindings {
     use pyo3::prelude::*;
     use std::borrow::Cow;
 
+    /**
+     * We use a `Cow` instead of a plain &[u8] because the latter only allows Python's
+     * `bytes` objects, while `Cow`` allows for both `bytes` and `bytearray`.
+     * This is important because an argument typed as `bytes` allows to pass a
+     * `bytearray` object too.
+     */
+
     #[pyfunction]
-    pub(crate) fn decompress_mio0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
-        Ok(Cow::Owned(super::decompress(bytes)?.into()))
+    pub(crate) fn decompress_mio0(bytes: Cow<[u8]>) -> Result<Cow<[u8]>, super::Crunch64Error> {
+        Ok(Cow::Owned(super::decompress(&bytes)?.into()))
     }
 
     #[pyfunction]
-    pub(crate) fn compress_mio0(bytes: &[u8]) -> Result<Cow<[u8]>, super::Crunch64Error> {
-        Ok(Cow::Owned(super::compress(bytes)?.into()))
+    pub(crate) fn compress_mio0(bytes: Cow<[u8]>) -> Result<Cow<[u8]>, super::Crunch64Error> {
+        Ok(Cow::Owned(super::compress(&bytes)?.into()))
     }
 }
 
