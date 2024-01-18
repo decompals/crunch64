@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - A few code cleanups.
 
+### Fixed
+
+- Functions not accepting `bytearray` objects.
+
 ## [0.2.0] - 2023-12-28
 
 ### Added
