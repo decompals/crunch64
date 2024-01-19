@@ -100,13 +100,15 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 
     write_header(&mut output, input_size)?;
 
-    output.push(0);
     let mut index_cur_layout_byte: usize = 0x10;
-    let mut index_out_ptr: usize = index_cur_layout_byte + 1;
+    let mut index_out_ptr: usize = index_cur_layout_byte;
     let mut input_pos: usize = 0;
-    let mut cur_layout_bit: u8 = 0x80;
+    let mut cur_layout_bit: u8 = 1;
 
     while input_pos < input_size {
+        // Advance to the next layout bit
+        cur_layout_bit >>= 1;
+
         if cur_layout_bit == 0 {
             cur_layout_bit = 0x80;
             index_cur_layout_byte = index_out_ptr;
@@ -173,9 +175,6 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             // Move forward in the input by the size of the group
             input_pos += group_size as usize;
         }
-
-        // Advance to the next layout bit
-        cur_layout_bit >>= 1;
     }
 
     Ok(output.into_boxed_slice())
