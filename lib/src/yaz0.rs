@@ -107,6 +107,13 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let mut cur_layout_bit: u8 = 0x80;
 
     while input_pos < input_size {
+        if cur_layout_bit == 0 {
+            cur_layout_bit = 0x80;
+            index_cur_layout_byte = index_out_ptr;
+            output.push(0);
+            index_out_ptr += 1;
+        }
+
         let (mut group_pos, mut group_size) = utils::search(input_pos, bytes, 0x111);
 
         // If the group isn't larger than 2 bytes, copying the input without compression is smaller
@@ -169,13 +176,6 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 
         // Advance to the next layout bit
         cur_layout_bit >>= 1;
-
-        if cur_layout_bit == 0 {
-            cur_layout_bit = 0x80;
-            index_cur_layout_byte = index_out_ptr;
-            output.push(0);
-            index_out_ptr += 1;
-        }
     }
 
     Ok(output.into_boxed_slice())
