@@ -11,5 +11,5 @@ name = "crunch64"
 path = "src/main.rs"
 
 [dependencies]
-crunch64 = { version = "0.2.0", path = "../lib" }
+crunch64 = { version = "0.3.0", path = "../lib" }
 clap = { version = "4.4.11", features = ["derive"] }
