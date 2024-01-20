@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix some rare cases where the Yaz0 compressor may append an extra 0 at the end of the compressed data.
+
 ## [0.3.0] - 2024-1-19
 
 ### Added
@@ -42,7 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python bindings.
 - C bindings.
 
-[unreleased]: https://github.com/decompals/crunch64/compare/0.2.0...HEAD
+[unreleased]: https://github.com/decompals/crunch64/compare/0.3.0...HEAD
+[0.3.0]: https://github.com/decompals/crunch64/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/decompals/crunch64/compare/0.1.1...0.2.0
 [0.1.1]: https://github.com/decompals/crunch64/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/decompals/crunch64/releases/tag/0.1.0
