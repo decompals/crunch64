@@ -1,6 +1,6 @@
 [package]
 name = "crunch64-cli"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 description = "A utility for compressing/decompressing files with common n64 formats"
 repository = "https://github.com/decompals/crunch64"
