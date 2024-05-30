@@ -64,7 +64,8 @@ impl CompressionType {
         match self {
             CompressionType::Yay0 => yay0::compress(bytes),
             CompressionType::Yaz0 => yaz0::compress(bytes),
-            _ => Err(Crunch64Error::UnsupportedCompressionType),
+            CompressionType::Mio0 => mio0::compress(bytes),
+            // _ => Err(Crunch64Error::UnsupportedCompressionType),
         }
     }
 }
