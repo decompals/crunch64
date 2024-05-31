@@ -13,6 +13,7 @@ path = "src/lib.rs"
 crate-type = ["lib", "staticlib", "cdylib"]
 
 [dependencies]
+crc32fast = "1.4.2"
 pyo3 = { version="0.20.0", features = ["extension-module"], optional = true }
 thiserror = "1.0"
 

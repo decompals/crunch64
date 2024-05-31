@@ -18,6 +18,7 @@ enum CompressionType {
     Yay0,
     Yaz0,
     Mio0,
+    Gzip,
 }
 
 #[derive(Parser, Debug)]
@@ -31,40 +32,47 @@ struct Args {
     in_path: String,
     #[arg()]
     out_path: String,
+    /// Compression level for gzip (4-9)
+    #[arg(long, default_value_t = 9)]
+    level: usize,
+    /// Output gzip blocks more frequently
+    #[arg(long)]
+    small_mem: bool,
 }
 
-fn compress(format: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-    match format {
+fn compress(args: &Args, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    match args.format {
         CompressionType::Yay0 => crunch64::yay0::compress(bytes),
         CompressionType::Yaz0 => crunch64::yaz0::compress(bytes),
         CompressionType::Mio0 => crunch64::mio0::compress(bytes),
+        CompressionType::Gzip => crunch64::gzip::compress(bytes, args.level, args.small_mem),
         // _ => Err(Crunch64Error::UnsupportedCompressionType),
     }
 }
 
-fn decompress(format: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-    match format {
+fn decompress(args: &Args, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    match args.format {
         CompressionType::Yay0 => crunch64::yay0::decompress(bytes),
         CompressionType::Yaz0 => crunch64::yaz0::decompress(bytes),
         CompressionType::Mio0 => crunch64::mio0::decompress(bytes),
-        //_ => Err(Crunch64Error::UnsupportedCompressionType),
+        _ => Err(Crunch64Error::UnsupportedCompressionType),
     }
 }
 
 fn main() {
     let args = Args::parse();
 
-    let file_bytes = read_file_bytes(args.in_path);
+    let file_bytes = read_file_bytes(&args.in_path);
 
     let out_bytes = match args.command {
-        Command::Compress => match compress(args.format, file_bytes.as_slice()) {
+        Command::Compress => match compress(&args, file_bytes.as_slice()) {
             Ok(bytes) => bytes,
             Err(error) => {
                 eprintln!("{:?}", error);
                 process::exit(1);
             }
         },
-        Command::Decompress => match decompress(args.format, file_bytes.as_slice()) {
+        Command::Decompress => match decompress(&args, file_bytes.as_slice()) {
             Ok(bytes) => bytes,
             Err(error) => {
                 eprintln!("{:?}", error);
