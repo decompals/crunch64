@@ -207,7 +207,7 @@ impl Window<'_> {
 
         while pos != NULL {
             // Figure out the current match offset from `pos` (which is equal to `match_offset & WINDOW_MASK`)
-            // using the fact that`1 <= input_pos - match_offset <= WINDOW_SIZE`
+            // using the fact that `1 <= input_pos - match_offset <= WINDOW_SIZE`
             let match_offset =
                 input_pos - 1 - (input_pos.wrapping_sub(pos as usize + 1) & WINDOW_MASK);
 
