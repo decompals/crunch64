@@ -127,6 +127,7 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             input_pos += 1;
             index_out_ptr += 1;
         } else {
+            // Search for a new group after one position after the current one
             let (new_position, new_size) = window.search(input_pos + 1, 0x111);
 
             // If the new group is better than the current group by at least 2 bytes, use it instead
