@@ -87,6 +87,8 @@ const WINDOW_MASK: usize = WINDOW_SIZE - 1;
 const MIN_MATCH: usize = 3;
 const NULL: u16 = 0xFFFF;
 
+// Updates a running hash value with a new byte. The shift ensure that only the
+// last 3 bytes of the input can affect the hash value.
 fn update_hash(hash: usize, byte: u8) -> usize {
     ((hash << 5) ^ (byte as usize)) & HASH_MASK
 }
@@ -126,7 +128,7 @@ pub(crate) struct Window<'a> {
 impl Window<'_> {
     pub(crate) fn new(input: &[u8]) -> Window {
         let mut hash = 0;
-        for &b in input.iter().take(MIN_MATCH - 1) {
+        for &b in input.iter().take(MIN_MATCH) {
             hash = update_hash(hash, b);
         }
 
@@ -149,11 +151,6 @@ impl Window<'_> {
 
         // Remove the oldest byte from the hash chain
         if self.input_pos >= WINDOW_SIZE {
-            self.hash_start = update_hash(
-                self.hash_start,
-                self.input[self.input_pos - WINDOW_SIZE + MIN_MATCH - 1],
-            );
-
             let head = self.head[self.hash_start];
             let next = self.next[head as usize];
 
@@ -161,11 +158,15 @@ impl Window<'_> {
             if next == NULL {
                 self.tail[self.hash_start] = NULL;
             }
+
+            self.hash_start = update_hash(
+                self.hash_start,
+                self.input[self.input_pos - WINDOW_SIZE + MIN_MATCH],
+            );
         }
 
         // Add the current byte to the hash chain
         if self.input_pos + MIN_MATCH < self.input.len() {
-            self.hash_end = update_hash(self.hash_end, self.input[self.input_pos + MIN_MATCH - 1]);
             let tail = self.tail[self.hash_end];
             let pos = (self.input_pos & WINDOW_MASK) as u16;
 
@@ -176,6 +177,8 @@ impl Window<'_> {
             } else {
                 self.next[tail as usize] = pos;
             }
+
+            self.hash_end = update_hash(self.hash_end, self.input[self.input_pos + MIN_MATCH]);
         }
 
         self.input_pos += 1;
@@ -200,8 +203,7 @@ impl Window<'_> {
             self.advance();
         }
 
-        let hash = update_hash(self.hash_end, self.input[self.input_pos + MIN_MATCH - 1]);
-        let mut pos = self.head[hash];
+        let mut pos = self.head[self.hash_end];
         let mut best_len = MIN_MATCH - 1;
         let mut best_offset = 0;
 
@@ -215,7 +217,8 @@ impl Window<'_> {
                 && self.input[input_pos + 1] == self.input[match_offset + 1]
                 && self.input[match_offset + best_len] == self.input[input_pos + best_len]
             {
-                // The hash function guarantees that if the first two bytes match, the third byte will too
+                // The hash function guarantees that if the hashes are equal and
+                // the first two bytes match, the third byte will too
                 let candidate_len = 3 + longest_common_prefix(
                     &self.input[input_pos + 3..],
                     &self.input[match_offset + 3..],
@@ -232,6 +235,7 @@ impl Window<'_> {
 
             pos = self.next[pos as usize];
         }
+
         (best_offset as u32, best_len as u32)
     }
 }
