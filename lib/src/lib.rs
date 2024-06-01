@@ -42,34 +42,6 @@ impl std::convert::From<Crunch64Error> for PyErr {
     }
 }
 
-#[repr(u8)]
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub enum CompressionType {
-    Yay0,
-    Yaz0,
-    Mio0,
-}
-
-impl CompressionType {
-    pub fn decompress(self: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-        match self {
-            CompressionType::Yay0 => yay0::decompress(bytes),
-            CompressionType::Yaz0 => yaz0::decompress(bytes),
-            CompressionType::Mio0 => mio0::decompress(bytes),
-            //_ => Err(Crunch64Error::UnsupportedCompressionType),
-        }
-    }
-
-    pub fn compress(self: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
-        match self {
-            CompressionType::Yay0 => yay0::compress(bytes),
-            CompressionType::Yaz0 => yaz0::compress(bytes),
-            CompressionType::Mio0 => mio0::compress(bytes),
-            // _ => Err(Crunch64Error::UnsupportedCompressionType),
-        }
-    }
-}
-
 #[cfg(feature = "python_bindings")]
 #[pymodule]
 fn crunch64(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
