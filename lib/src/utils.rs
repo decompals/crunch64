@@ -78,6 +78,10 @@ pub(crate) fn set_pointer_array_from_u8_array(
     Ok(())
 }
 
+pub(crate) fn longest_common_prefix(a: &[u8], b: &[u8]) -> usize {
+    a.iter().zip(b.iter()).take_while(|&(a, b)| a == b).count()
+}
+
 const HASH_SIZE: usize = 1 << 15;
 const HASH_MASK: usize = HASH_SIZE - 1;
 
@@ -91,15 +95,6 @@ const NULL: u16 = 0xFFFF;
 // last 3 bytes of the input can affect the hash value.
 fn update_hash(hash: usize, byte: u8) -> usize {
     ((hash << 5) ^ (byte as usize)) & HASH_MASK
-}
-
-fn longest_common_prefix(a: &[u8], b: &[u8], max_len: usize) -> usize {
-    for i in 0..max_len {
-        if a[i] != b[i] {
-            return i;
-        }
-    }
-    max_len
 }
 
 // Finds the longest match in a 0x1000-byte sliding window, searching
@@ -220,9 +215,8 @@ impl Window<'_> {
                 // The hash function guarantees that if the hashes are equal and
                 // the first two bytes match, the third byte will too
                 let candidate_len = 3 + longest_common_prefix(
-                    &self.input[input_pos + 3..],
-                    &self.input[match_offset + 3..],
-                    max_match_length - 3,
+                    &self.input[input_pos + 3..input_pos + max_match_length],
+                    &self.input[match_offset + 3..match_offset + max_match_length],
                 );
                 if candidate_len > best_len {
                     best_len = candidate_len;
