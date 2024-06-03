@@ -1,9 +1,10 @@
-use clap::{error::ErrorKind, CommandFactory, Parser, ValueEnum};
-use crunch64::CompressionType;
+use clap::{Parser, ValueEnum};
+use crunch64::Crunch64Error;
 use std::{
     fs::File,
     io::{BufReader, BufWriter, Read, Write},
     path::PathBuf,
+    process,
 };
 
 #[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq)]
@@ -12,17 +13,42 @@ enum Command {
     Decompress,
 }
 
+#[derive(ValueEnum, Copy, Clone, Debug, PartialEq, Eq, Hash)]
+enum CompressionType {
+    Yay0,
+    Yaz0,
+    Mio0,
+}
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
     #[arg()]
     command: Command,
-    #[arg()]
-    format: String,
+    #[arg(ignore_case = true)]
+    format: CompressionType,
     #[arg()]
     in_path: String,
     #[arg()]
     out_path: String,
+}
+
+fn compress(format: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    match format {
+        CompressionType::Yay0 => crunch64::yay0::compress(bytes),
+        CompressionType::Yaz0 => crunch64::yaz0::compress(bytes),
+        CompressionType::Mio0 => crunch64::mio0::compress(bytes),
+        // _ => Err(Crunch64Error::UnsupportedCompressionType),
+    }
+}
+
+fn decompress(format: CompressionType, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
+    match format {
+        CompressionType::Yay0 => crunch64::yay0::decompress(bytes),
+        CompressionType::Yaz0 => crunch64::yaz0::decompress(bytes),
+        CompressionType::Mio0 => crunch64::mio0::decompress(bytes),
+        //_ => Err(Crunch64Error::UnsupportedCompressionType),
+    }
 }
 
 fn main() {
@@ -30,33 +56,19 @@ fn main() {
 
     let file_bytes = read_file_bytes(args.in_path);
 
-    let compression_format = match args.format.as_str() {
-        "Yay0" | "yay0" => CompressionType::Yay0,
-        "Yaz0" | "yaz0" => CompressionType::Yaz0,
-        "MIO0" | "Mio0" | "mio0" => CompressionType::Mio0,
-        _ => {
-            let mut cmd = Args::command();
-            cmd.error(
-                ErrorKind::InvalidValue,
-                format!("File format {} not supported", args.format),
-            )
-            .exit()
-        }
-    };
-
     let out_bytes = match args.command {
-        Command::Compress => match compression_format.compress(file_bytes.as_slice()) {
+        Command::Compress => match compress(args.format, file_bytes.as_slice()) {
             Ok(bytes) => bytes,
             Err(error) => {
-                println!("{:?}", error);
-                return;
+                eprintln!("{:?}", error);
+                process::exit(1);
             }
         },
-        Command::Decompress => match compression_format.decompress(file_bytes.as_slice()) {
+        Command::Decompress => match decompress(args.format, file_bytes.as_slice()) {
             Ok(bytes) => bytes,
             Err(error) => {
-                println!("{:?}", error);
-                return;
+                eprintln!("{:?}", error);
+                process::exit(1);
             }
         },
     };
@@ -64,8 +76,8 @@ fn main() {
     let mut buf_writer = match File::create(args.out_path) {
         Ok(file) => BufWriter::new(file),
         Err(_error) => {
-            println!("Failed to create file");
-            return;
+            eprintln!("Failed to create file");
+            process::exit(1);
         }
     };
 
@@ -76,7 +88,8 @@ pub fn read_file_bytes<P: Into<PathBuf>>(path: P) -> Vec<u8> {
     let file = match File::open(path.into()) {
         Ok(file) => file,
         Err(_error) => {
-            panic!("Failed to open file");
+            eprintln!("Failed to open file");
+            process::exit(1);
         }
     };
 
