@@ -89,6 +89,8 @@ fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error>
 pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let input_size = bytes.len();
 
+    let mut window = utils::Window::new(bytes);
+
     let mut pp: usize = 0;
     let mut index_cur_layout_byte: usize = 0;
 
@@ -100,7 +102,7 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     let mut cur_layout_bit: u32 = 0x80000000;
 
     while input_pos < input_size {
-        let (mut group_pos, mut group_size) = utils::search(input_pos, bytes, 18);
+        let (mut group_pos, mut group_size) = window.search(input_pos, 18);
 
         // If the group isn't larger than 2 bytes, copying the input without compression is smaller
         if group_size <= 2 {
@@ -110,7 +112,7 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
             input_pos += 1;
         } else {
             // Search for a new group after one position after the current one
-            let (new_position, new_size) = utils::search(input_pos + 1, bytes, 18);
+            let (new_position, new_size) = window.search(input_pos + 1, 18);
 
             // If the new group is better than the current group by at least 2 bytes, use it instead
             if new_size >= group_size + 2 {
