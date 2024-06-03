@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2024-06-03
+
+### Added
+
+- Add MIO0 compression to CLI (#17)
+
+### Changed
+
+- Speed up compression by 2100% (#18)
+- Move CompressionType from library to CLI (#19)
+
 ## [0.3.1] - 2024-01-20
 
 ### Fixed
@@ -48,7 +59,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python bindings.
 - C bindings.
 
-[unreleased]: https://github.com/decompals/crunch64/compare/0.3.1...HEAD
+[unreleased]: https://github.com/decompals/crunch64/compare/0.4.0...HEAD
+[0.4.0]: https://github.com/decompals/crunch64/compare/0.3.1...0.4.0
 [0.3.1]: https://github.com/decompals/crunch64/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/decompals/crunch64/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/decompals/crunch64/compare/0.1.1...0.2.0
