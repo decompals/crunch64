@@ -16,17 +16,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Make C test programs
+      - name: Make C test program
         run: make -C c_bindings BUILD_MODE=release
 
-      - name: Test MIO0
-        run: ./c_bindings/tests/test_mio0.sh
-
-      - name: Test Yay0
-        run: ./c_bindings/tests/test_yay0.sh
-
-      - name: Test Yaz0
-        run: ./c_bindings/tests/test_yaz0.sh
+      - name: Run tests
+        run: c_bindings/tests.elf
 
   release:
     name: Release ${{ matrix.crate-type }} for ${{ matrix.target }}

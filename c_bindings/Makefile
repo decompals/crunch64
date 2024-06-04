@@ -14,13 +14,13 @@ IINC       := -I include
 WARNINGS   := -Wall -Wextra -Wshadow -Werror
 
 
-C_BINDINGS_TESTS := $(wildcard tests/test_*.c)
-C_BINDINGS_ELFS  := $(C_BINDINGS_TESTS:.c=.elf)
+C_BINDINGS_TESTS := tests.c
+C_BINDINGS_ELF   := tests.elf
 
-all: $(C_BINDINGS_ELFS)
+all: $(C_BINDINGS_ELF)
 
 clean:
-	$(RM) -rf $(C_BINDINGS_ELFS) tests/*.elf
+	$(RM) $(C_BINDINGS_ELF)
 
 .PHONY: all clean
 .DEFAULT_GOAL := all
@@ -32,8 +32,8 @@ endif
 $(shell cargo build --lib --features c_bindings $(CARGO_FLAGS))
 
 
-%.elf: %.c $(LIB)
-	$(CC) $(CSTD) $(CFLAGS) $(IINC) $(WARNINGS) -o $@ tests/utils.c $< -L ../target/$(BUILD_MODE) -Wl,-Bstatic -l crunch64 -Wl,-Bdynamic
+$(C_BINDINGS_ELF): $(C_BINDINGS_TESTS) $(LIB)
+	$(CC) $(CSTD) $(CFLAGS) $(IINC) $(WARNINGS) -o $@ $< -L ../target/$(BUILD_MODE) -Wl,-Bstatic -l crunch64 -Wl,-Bdynamic
 
 # Print target for debugging
 print-% : ; $(info $* is a $(flavor $*) variable set to [$($*)]) @true
