@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import crunch64
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 
 def test_matching_decompression(
@@ -49,8 +49,8 @@ errors = 0
 def run_tests(
     name: str,
     file_extension: str,
-    compress: Optional[Callable[[bytes], bytes]],
-    decompress: Optional[Callable[[bytes], bytes]],
+    compress: Callable[[bytes], bytes] | None,
+    decompress: Callable[[bytes], bytes] | None,
 ):
     global errors
 
