@@ -1,3 +1,4 @@
+pub mod gzip;
 pub mod mio0;
 pub mod yay0;
 pub mod yaz0;
@@ -33,6 +34,8 @@ pub enum Crunch64Error {
     OutOfBounds,
     #[error("Pointer is null")]
     NullPointer,
+    #[error("Invalid compression level")]
+    InvalidCompressionLevel,
 }
 
 #[cfg(feature = "python_bindings")]
@@ -51,5 +54,6 @@ fn crunch64(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(yaz0::python_bindings::compress_yaz0, m)?)?;
     m.add_function(wrap_pyfunction!(mio0::python_bindings::decompress_mio0, m)?)?;
     m.add_function(wrap_pyfunction!(mio0::python_bindings::compress_mio0, m)?)?;
+    m.add_function(wrap_pyfunction!(gzip::python_bindings::compress_gzip, m)?)?;
     Ok(())
 }

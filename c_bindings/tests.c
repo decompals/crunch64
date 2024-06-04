@@ -220,10 +220,10 @@ void run_tests(const char *name, const char *file_extension, compress_bound_fn c
         assert(compressed_data_size > 0);
         assert(compressed_data != NULL);
 
-        if (!test_matching_decompression(decompress_bound, decompress, bin_size, bin, compressed_data_size, compressed_data)) {
+        if (decompress != NULL && !test_matching_decompression(decompress_bound, decompress, bin_size, bin, compressed_data_size, compressed_data)) {
             errors++;
         }
-        if (!test_matching_compression(compress_bound, compress, bin_size, bin, compressed_data_size, compressed_data)) {
+        if (compress != NULL && !test_matching_compression(compress_bound, compress, bin_size, bin, compressed_data_size, compressed_data)) {
             errors++;
         }
 
@@ -240,10 +240,29 @@ void run_tests(const char *name, const char *file_extension, compress_bound_fn c
     }
 }
 
+int gzip_level;
+bool gzip_small_mem;
+
+Crunch64Error gzip_compress(size_t *dst_size, uint8_t *dst, size_t src_size, const uint8_t *src) {
+    return crunch64_gzip_compress(dst_size, dst, src_size, src, gzip_level, gzip_small_mem);
+}
+
 int main(void) {
     run_tests("yay0", ".Yay0", crunch64_yay0_compress_bound, crunch64_yay0_compress, crunch64_yay0_decompress_bound, crunch64_yay0_decompress);
     run_tests("yaz0", ".Yaz0", crunch64_yaz0_compress_bound, crunch64_yaz0_compress, crunch64_yaz0_decompress_bound, crunch64_yaz0_decompress);
     run_tests("mio0", ".MIO0", crunch64_mio0_compress_bound, crunch64_mio0_compress, crunch64_mio0_decompress_bound, crunch64_mio0_decompress);
+
+    gzip_level = 9;
+    gzip_small_mem = false;
+    run_tests("gzip (level 9)", ".gzip-9", crunch64_gzip_compress_bound, gzip_compress, NULL, NULL);
+
+    gzip_level = 9;
+    gzip_small_mem = true;
+    run_tests("gzip (level 9, small_mem)", ".gzip-9-small-mem", crunch64_gzip_compress_bound, gzip_compress, NULL, NULL);
+
+    gzip_level = 6;
+    gzip_small_mem = true;
+    run_tests("gzip (level 6, small_mem)", ".gzip-6-small-mem", crunch64_gzip_compress_bound, gzip_compress, NULL, NULL);
 
     if (errors == 0) {
         fprintf(stderr, "All tests passed\n");

@@ -64,3 +64,6 @@ to check the latest release.
   - Reference implementation by Mr-Wiseguy: <https://gist.github.com/Mr-Wiseguy/6cca110d74b32b5bb19b76cfa2d7ab4f>
 - MIO0
   - Hack64.net docs: <https://hack64.net/wiki/doku.php?id=super_mario_64:mio0>
+- gzip
+  - Reference implementation: <https://github.com/Thar0/gzip-1.3.3-ique>
+  - DEFLATE specification: <https://datatracker.ietf.org/doc/html/rfc1951>
