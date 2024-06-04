@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import crunch64
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 
 
 def test_matching_decompression(
@@ -49,8 +49,8 @@ errors = 0
 def run_tests(
     name: str,
     file_extension: str,
-    compress: Callable[[bytes], bytes],
-    decompress: Callable[[bytes], bytes],
+    compress: Optional[Callable[[bytes], bytes]],
+    decompress: Optional[Callable[[bytes], bytes]],
 ):
     global errors
 
@@ -72,9 +72,13 @@ def run_tests(
         print(f"Reading {comp_path}")
         comp_data = comp_path.read_bytes()
 
-        if not test_matching_decompression(decompress, bin_data, comp_data):
+        if decompress is not None and not test_matching_decompression(
+            decompress, bin_data, comp_data
+        ):
             errors += 1
-        if not test_matching_compression(compress, bin_data, comp_data):
+        if compress is not None and not test_matching_compression(
+            compress, bin_data, comp_data
+        ):
             errors += 1
 
         print()
@@ -83,6 +87,24 @@ def run_tests(
 run_tests("yaz0", ".Yaz0", crunch64.yaz0.compress, crunch64.yaz0.decompress)
 run_tests("yay0", ".Yay0", crunch64.yay0.compress, crunch64.yay0.decompress)
 run_tests("mio0", ".MIO0", crunch64.mio0.compress, crunch64.mio0.decompress)
+run_tests(
+    "gzip (level 9)",
+    ".gzip-9",
+    compress=lambda data: crunch64.gzip.compress(data),
+    decompress=None,
+)
+run_tests(
+    "gzip (level 9, small_mem)",
+    ".gzip-9-small-mem",
+    compress=lambda data: crunch64.gzip.compress(data, small_mem=True),
+    decompress=None,
+)
+run_tests(
+    "gzip (level 6, small_mem)",
+    ".gzip-6-small-mem",
+    compress=lambda data: crunch64.gzip.compress(data, level=6, small_mem=True),
+    decompress=None,
+)
 
 if not errors:
     print("All tests passed")

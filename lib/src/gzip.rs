@@ -1178,3 +1178,67 @@ pub(crate) mod python_bindings {
         ))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::Crunch64Error;
+    use core::panic;
+    use rstest::rstest;
+    use std::{
+        fs::File,
+        io::{BufReader, Read},
+        path::PathBuf,
+    };
+
+    pub fn read_test_file(path: PathBuf) -> Vec<u8> {
+        let file = match File::open(path) {
+            Ok(file) => file,
+            Err(_error) => {
+                panic!("Failed to open file");
+            }
+        };
+
+        let mut buf_reader = BufReader::new(file);
+        let mut buffer = Vec::new();
+
+        let _ = buf_reader.read_to_end(&mut buffer);
+
+        buffer
+    }
+
+    #[rstest]
+    fn test_matching_compression_level_9(
+        #[files("../test_data/*.gzip-9")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
+        let compressed_file = &read_test_file(path.clone());
+        let decompressed_file = &read_test_file(path.with_extension(""));
+
+        let compressed = super::compress(decompressed_file.as_slice(), 9, false)?;
+        assert_eq!(compressed_file, compressed.as_ref());
+        Ok(())
+    }
+
+    #[rstest]
+    fn test_matching_compression_level_9_small_mem(
+        #[files("../test_data/*.gzip-9-small-mem")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
+        let compressed_file = &read_test_file(path.clone());
+        let decompressed_file = &read_test_file(path.with_extension(""));
+
+        let compressed = super::compress(decompressed_file.as_slice(), 9, true)?;
+        assert_eq!(compressed_file, compressed.as_ref());
+        Ok(())
+    }
+
+    #[rstest]
+    fn test_matching_compression_level_6_small_mem(
+        #[files("../test_data/*.gzip-6-small-mem")] path: PathBuf,
+    ) -> Result<(), Crunch64Error> {
+        let compressed_file = &read_test_file(path.clone());
+        let decompressed_file = &read_test_file(path.with_extension(""));
+
+        let compressed = super::compress(decompressed_file.as_slice(), 6, true)?;
+        assert_eq!(compressed_file, compressed.as_ref());
+        Ok(())
+    }
+}
