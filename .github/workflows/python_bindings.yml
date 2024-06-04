@@ -21,11 +21,5 @@ jobs:
     - name: Install local crunch64
       run: python3 -m pip install ./lib
 
-    - name: Test MIO0
-      run: python3 ./python_bindings/tests/test_mio0.py
-
-    - name: Test Yay0
-      run: python3 ./python_bindings/tests/test_yay0.py
-
-    - name: Test Yaz0
-      run: python3 ./python_bindings/tests/test_yaz0.py
+    - name: Run tests
+      run: python3 ./python_bindings/tests.py
