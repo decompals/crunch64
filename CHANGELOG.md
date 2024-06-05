@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2024-06-04
+
 ### Added
 
 - Add matching zlib/DEFLATE compression for old gzip versions.
@@ -63,7 +65,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python bindings.
 - C bindings.
 
-[unreleased]: https://github.com/decompals/crunch64/compare/0.4.0...HEAD
+[unreleased]: https://github.com/decompals/crunch64/compare/0.5.0...HEAD
+[0.5.0]: https://github.com/decompals/crunch64/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/decompals/crunch64/compare/0.3.1...0.4.0
 [0.3.1]: https://github.com/decompals/crunch64/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/decompals/crunch64/compare/0.2.0...0.3.0

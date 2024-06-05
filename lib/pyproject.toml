@@ -1,7 +1,7 @@
 [project]
 name = "crunch64"
 # Version should be synced with lib/Cargo.toml and lib/crunch64/__init__.py
-version = "0.4.0"
+version = "0.5.0"
 description = "A library for handling common compression formats for N64 games"
 requires-python = ">=3.7"
 dependencies = [
