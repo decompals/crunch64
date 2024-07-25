@@ -1022,14 +1022,32 @@ pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>
             pos += prev_match_len - 1;
             lookahead -= prev_match_len - 1;
 
+            if should_flush {
+                if pos >= block_length {
+                    writer.flush_block(&mut output, Some(&window[pos - block_length..pos]), false);
+                } else {
+                    writer.flush_block(&mut output, None, false);
+                }
+                block_length = 0;
+            }
+
             has_prev_char = false;
             prev_match_len = MIN_MATCH - 1;
             prev_match_dist = 0;
         } else {
-            // Remember current match and emit previous character as literal if it exists
+            // Emit previous character as literal (if it exists) and remember current match
             if has_prev_char {
                 writer.add_literal(window[pos - 1]);
                 should_flush = writer.should_flush_block(block_length);
+            }
+
+            if should_flush {
+                if pos >= block_length {
+                    writer.flush_block(&mut output, Some(&window[pos - block_length..pos]), false);
+                } else {
+                    writer.flush_block(&mut output, None, false);
+                }
+                block_length = 0;
             }
 
             block_length += 1;
@@ -1039,15 +1057,6 @@ pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>
             has_prev_char = true;
             prev_match_len = best_len;
             prev_match_dist = pos - 1 - best_pos;
-        }
-
-        if should_flush {
-            if pos >= block_length {
-                writer.flush_block(&mut output, Some(&window[pos - block_length..pos]), false);
-            } else {
-                writer.flush_block(&mut output, None, false);
-            }
-            block_length = 0;
         }
 
         // Refill window

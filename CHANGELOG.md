@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix a bug where the gzip compressor may output incorrect data when emitting
+  "fixed blocks" (which are emitted when compressing high-entropy data).
+
 ## [0.5.0] - 2024-06-04
 
 ### Added
