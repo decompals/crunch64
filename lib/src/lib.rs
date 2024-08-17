@@ -38,10 +38,6 @@ pub enum Crunch64Error {
     NullPointer,
     #[error("Invalid compression level")]
     InvalidCompressionLevel,
-    #[cfg(not(feature = "c_bindings"))]
-    #[error("Failed to handle vpk0 data: {0}")]
-    Vpk0(String),
-    #[cfg(feature = "c_bindings")]
     #[error("Failed to handle vpk0 data")]
     Vpk0,
 }
