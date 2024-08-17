@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add support to the vpk0 format, courtesy of (tehzz)[https://github.com/tehzz/vpk0].
+
 ## [0.5.1] - 2024-07-25
 
 ### Fixed

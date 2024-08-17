@@ -1,5 +1,6 @@
 pub mod gzip;
 pub mod mio0;
+pub mod vpk0;
 pub mod yay0;
 pub mod yaz0;
 
@@ -14,7 +15,8 @@ use pyo3::prelude::*;
 
 /* This needs to be in sync with the C equivalent at `crunch64/error.h` */
 #[cfg_attr(feature = "c_bindings", repr(u32))]
-#[derive(Copy, Clone, Debug, Error, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "c_bindings", derive(Copy))]
+#[derive(Clone, Debug, Error, PartialEq, Eq, Hash)]
 pub enum Crunch64Error {
     #[error("Not an error")]
     Okay,
@@ -36,6 +38,8 @@ pub enum Crunch64Error {
     NullPointer,
     #[error("Invalid compression level")]
     InvalidCompressionLevel,
+    #[error("Failed to handle vpk0 data")]
+    Vpk0,
 }
 
 #[cfg(feature = "python_bindings")]
