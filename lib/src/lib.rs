@@ -15,6 +15,7 @@ use pyo3::prelude::*;
 
 /* This needs to be in sync with the C equivalent at `crunch64/error.h` */
 #[cfg_attr(feature = "c_bindings", repr(u32))]
+#[cfg_attr(feature = "c_bindings", derive(Copy))]
 #[derive(Clone, Debug, Error, PartialEq, Eq, Hash)]
 pub enum Crunch64Error {
     #[error("Not an error")]
@@ -37,8 +38,12 @@ pub enum Crunch64Error {
     NullPointer,
     #[error("Invalid compression level")]
     InvalidCompressionLevel,
+    #[cfg(not(feature = "c_bindings"))]
     #[error("Failed to handle vpk0 data: {0}")]
     Vpk0(String),
+    #[cfg(feature = "c_bindings")]
+    #[error("Failed to handle vpk0 data")]
+    Vpk0,
 }
 
 #[cfg(feature = "python_bindings")]
