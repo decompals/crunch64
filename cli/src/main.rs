@@ -19,6 +19,7 @@ enum CompressionType {
     Yaz0,
     Mio0,
     Gzip,
+    Vpk0,
 }
 
 #[derive(Parser, Debug)]
@@ -46,6 +47,7 @@ fn compress(args: &Args, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
         CompressionType::Yaz0 => crunch64::yaz0::compress(bytes),
         CompressionType::Mio0 => crunch64::mio0::compress(bytes),
         CompressionType::Gzip => crunch64::gzip::compress(bytes, args.level, args.small_mem),
+        CompressionType::Vpk0 => crunch64::vpk0::compress(bytes),
         // _ => Err(Crunch64Error::UnsupportedCompressionType),
     }
 }
@@ -55,6 +57,7 @@ fn decompress(args: &Args, bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
         CompressionType::Yay0 => crunch64::yay0::decompress(bytes),
         CompressionType::Yaz0 => crunch64::yaz0::decompress(bytes),
         CompressionType::Mio0 => crunch64::mio0::decompress(bytes),
+        CompressionType::Vpk0 => crunch64::vpk0::decompress(bytes),
         _ => Err(Crunch64Error::UnsupportedCompressionType),
     }
 }
