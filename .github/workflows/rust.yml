@@ -6,14 +6,27 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  rustfmt-check:
+  rustfmt:
+    name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout reposistory
+        uses: actions/checkout@v4
+
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
+
+  clippy:
+    name: Check clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reposistory
+        uses: actions/checkout@v4
+
       - name: Run cargo clippy
-        run: cargo clippy --all -- -D warnings
+        run: |
+          cargo clippy --version
+          cargo clippy --all -- -D warnings
 
   macos-check:
     runs-on: macos-latest
