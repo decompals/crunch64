@@ -26,7 +26,7 @@ jobs:
       - name: Run cargo clippy
         run: |
           cargo clippy --version
-          cargo clippy --all -- -D warnings
+          cargo clippy --all --all-targets --all-features -- -D warnings
 
   macos-check:
     runs-on: macos-latest

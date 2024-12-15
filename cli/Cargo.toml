@@ -5,6 +5,7 @@ edition = "2021"
 description = "A utility for compressing/decompressing files with common n64 formats"
 repository = "https://github.com/decompals/crunch64"
 license = "MIT"
+rust-version = "1.73.0"
 
 [[bin]]
 name = "crunch64"

@@ -82,15 +82,11 @@ pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     Ok(ret.into_boxed_slice())
 }
 
-fn divide_round_up(a: usize, b: usize) -> usize {
-    (a + b - 1) / b
-}
-
 fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error> {
     // Worst-case size for output is zero compression on the input, meaning the input size plus the number of layout bytes plus the Yaz0 header.
     // There would be one layout byte for every 8 input bytes, so the worst-case size is:
     //   input_size + ROUND_UP_DIVIDE(input_size, 8) + 0x10
-    Ok(input_size + divide_round_up(input_size, 8) + 0x10)
+    Ok(input_size + input_size.div_ceil(8) + 0x10)
 }
 
 pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
