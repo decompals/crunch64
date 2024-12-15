@@ -6,6 +6,7 @@ edition = "2021"
 description = "A library for handling common compression formats for N64 games"
 repository = "https://github.com/decompals/crunch64"
 license = "MIT"
+rust-version = "1.70.0"
 
 [lib]
 name = "crunch64"

@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Python 3.9 or later is now required.
-  - Mainly due to not being able to automatically check for older version in CI.
+  - Mainly due to not being able to automatically check and build for older versions in CI.
 
 ## [0.5.1] - 2024-07-25
 
