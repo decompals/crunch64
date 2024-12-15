@@ -1,0 +1,25 @@
+name: Check mypy
+
+# Build on every branch push, tag push, and pull request change:
+on: [push, pull_request]
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    name: mypy
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+
+      - name: Install Dependencies
+        run: |
+          python3 -m pip install -r requirements.txt
+          python3 -m pip install -U maturin
+          python3 -m pip install -U mypy
+
+      - name: mypy
+        run: python3 -m mypy --show-column-numbers --hide-error-context .

@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Prebuilt binaries for Python 3.13.
+- Check Python files with mypy
+
+### Changed
+
+- Python 3.9 or later is now required.
+  - Mainly due to not being able to automatically check for older version in CI.
 
 ## [0.5.1] - 2024-07-25
 
