@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Prebuilt binaries for Python 3.13.
+
 ## [0.5.1] - 2024-07-25
 
 ### Fixed
