@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] - 2024-12-15
+
+### Fixed
+
+- Correct version number for Python project.
+
 ## [0.5.2] - 2024-12-15
 
 ### Added
@@ -86,6 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - C bindings.
 
 [unreleased]: https://github.com/decompals/crunch64/compare/0.5.1...HEAD
+[0.5.3]: https://github.com/decompals/crunch64/compare/0.5.2...0.5.3
 [0.5.2]: https://github.com/decompals/crunch64/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/decompals/crunch64/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/decompals/crunch64/compare/0.4.0...0.5.0
