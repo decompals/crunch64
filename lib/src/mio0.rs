@@ -77,13 +77,9 @@ pub fn decompress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
     Ok(ret.into_boxed_slice())
 }
 
-fn divide_round_up(a: usize, b: usize) -> usize {
-    (a + b - 1) / b
-}
-
 fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error> {
     // Taken from Yaz0
-    Ok(input_size + divide_round_up(input_size, 8) + 0x10)
+    Ok(input_size + input_size.div_ceil(8) + 0x10)
 }
 
 pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {

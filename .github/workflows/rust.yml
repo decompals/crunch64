@@ -6,14 +6,27 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  rustfmt-check:
+  rustfmt:
+    name: Check formatting
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout reposistory
+        uses: actions/checkout@v4
+
       - name: Run cargo fmt
         run: cargo fmt --all -- --check
+
+  clippy:
+    name: Check clippy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reposistory
+        uses: actions/checkout@v4
+
       - name: Run cargo clippy
-        run: cargo clippy --all -- -D warnings
+        run: |
+          cargo clippy --version
+          cargo clippy --all --all-targets --all-features -- -D warnings
 
   macos-check:
     runs-on: macos-latest
@@ -35,3 +48,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Test
         run: cargo test
+
+  msrv:
+    name: Check MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reposistory
+        uses: actions/checkout@v4
+
+      - name: Setup MSRV checker
+        uses: taiki-e/install-action@cargo-hack
+
+      # To find current MSRV use `cargo msrv find`. Install it with `cargo install cargo-msrv --locked`
+      - name: Run MSRV checker
+        run: cargo hack check --rust-version --workspace --all-targets --ignore-private

@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2024-12-15
+
+### Added
+
+- Prebuilt binaries for Python 3.13.
+- Check Python files with mypy.
+- Set MSRV (minimum supported Rust version) to 1.73.
+
+### Changed
+
+- Python 3.9 or later is now required.
+  - Mainly due to not being able to automatically check and build for older versions in CI.
+
 ## [0.5.1] - 2024-07-25
 
 ### Fixed
@@ -73,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - C bindings.
 
 [unreleased]: https://github.com/decompals/crunch64/compare/0.5.1...HEAD
+[0.5.2]: https://github.com/decompals/crunch64/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/decompals/crunch64/compare/0.5.0...0.5.1
 [0.5.0]: https://github.com/decompals/crunch64/compare/0.4.0...0.5.0
 [0.4.0]: https://github.com/decompals/crunch64/compare/0.3.1...0.4.0

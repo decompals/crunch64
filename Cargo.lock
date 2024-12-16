@@ -134,7 +134,7 @@ dependencies = [
 
 [[package]]
 name = "crunch64"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "crc32fast",
  "pyo3",
@@ -144,7 +144,7 @@ dependencies = [
 
 [[package]]
 name = "crunch64-cli"
-version = "0.5.1"
+version = "0.5.2"
 dependencies = [
  "clap",
  "crunch64",

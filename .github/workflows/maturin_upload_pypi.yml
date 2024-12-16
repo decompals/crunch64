@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.9 - 3.13'
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -50,7 +50,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.13'
           architecture: ${{ matrix.target }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -76,7 +76,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.13'
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
@@ -112,6 +112,26 @@ jobs:
           name: wheels
           path: dist
           if-no-files-found: error
+
+  check_clippy_python_bindings:
+    name: Check clippy for Python bindings
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout reposistory
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Setup clippy
+        run: rustup component add clippy
+
+      - name: Run clippy
+        run: cargo clippy --all-targets --features python_bindings -- -D warnings
 
   release:
     name: Release
