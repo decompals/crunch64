@@ -68,14 +68,14 @@ fn main() {
         Command::Compress => match compress(&args, file_bytes.as_slice()) {
             Ok(bytes) => bytes,
             Err(error) => {
-                eprintln!("{:?}", error);
+                eprintln!("{error:?}");
                 process::exit(1);
             }
         },
         Command::Decompress => match decompress(&args, file_bytes.as_slice()) {
             Ok(bytes) => bytes,
             Err(error) => {
-                eprintln!("{:?}", error);
+                eprintln!("{error:?}");
                 process::exit(1);
             }
         },

@@ -21,8 +21,8 @@ jobs:
         target: [x86_64, x86, aarch64, armv7, s390x, ppc64le]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.9 - 3.13'
       - name: Build wheels
@@ -34,9 +34,9 @@ jobs:
           manylinux: auto
           working-directory: lib/
       - name: Upload wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-linux-${{ matrix.target }}
           path: dist
           if-no-files-found: error
 
@@ -47,8 +47,8 @@ jobs:
         target: [x64, x86]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
           architecture: ${{ matrix.target }}
@@ -60,9 +60,9 @@ jobs:
           sccache: 'true'
           working-directory: lib/
       - name: Upload wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-windows-${{ matrix.target }}
           path: dist
           if-no-files-found: error
 
@@ -73,8 +73,8 @@ jobs:
         target: [x86_64, aarch64]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       - name: Build wheels
@@ -85,9 +85,9 @@ jobs:
           sccache: 'true'
           working-directory: lib/
       - name: Upload wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-macos-${{ matrix.target }}
           path: dist
           if-no-files-found: error
 
@@ -97,7 +97,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build sdist
         uses: PyO3/maturin-action@v1
@@ -107,9 +107,9 @@ jobs:
           working-directory: lib/
 
       - name: Upload sdist
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-sdist
           path: dist
           if-no-files-found: error
 
@@ -119,10 +119,10 @@ jobs:
 
     steps:
       - name: Checkout reposistory
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
           override: true
@@ -141,13 +141,13 @@ jobs:
     strategy:
       fail-fast: false
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: wheels
+          path: dist
       - name: Publish to PyPI
         uses: PyO3/maturin-action@v1
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
         with:
           command: upload
-          args: --non-interactive --skip-existing *
+          args: --non-interactive --skip-existing dist/*

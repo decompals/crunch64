@@ -1,4 +1,4 @@
-use crate::{utils, Crunch64Error};
+use crate::{Crunch64Error, utils};
 
 fn parse_header(bytes: &[u8]) -> Result<(usize, usize, usize), Crunch64Error> {
     if bytes.len() < 0x10 {
@@ -178,7 +178,7 @@ pub fn compress(bytes: &[u8]) -> Result<Box<[u8]>, Crunch64Error> {
 
 #[cfg(feature = "c_bindings")]
 mod c_bindings {
-    #[no_mangle]
+    #[unsafe(no_mangle)]
     pub extern "C" fn crunch64_mio0_decompress_bound(
         dst_size: *mut usize,
         src_len: usize,
@@ -205,7 +205,7 @@ mod c_bindings {
         super::Crunch64Error::Okay
     }
 
-    #[no_mangle]
+    #[unsafe(no_mangle)]
     pub extern "C" fn crunch64_mio0_decompress(
         dst_len: *mut usize,
         dst: *mut u8,
@@ -233,7 +233,7 @@ mod c_bindings {
         super::Crunch64Error::Okay
     }
 
-    #[no_mangle]
+    #[unsafe(no_mangle)]
     pub extern "C" fn crunch64_mio0_compress_bound(
         dst_size: *mut usize,
         src_len: usize,
@@ -251,7 +251,7 @@ mod c_bindings {
         super::Crunch64Error::Okay
     }
 
-    #[no_mangle]
+    #[unsafe(no_mangle)]
     pub extern "C" fn crunch64_mio0_compress(
         dst_len: *mut usize,
         dst: *mut u8,

@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Make C test program
         run: make -C c_bindings BUILD_MODE=release
@@ -24,7 +24,7 @@ jobs:
 
   release:
     name: Release ${{ matrix.crate-type }} for ${{ matrix.target }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -44,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -77,21 +77,12 @@ jobs:
         run: |
           cd package && zip -r ../crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip *
 
-      - name: Upload .tar.gz archive
-        if: matrix.archive == 'tar.gz'
-        uses: actions/upload-artifact@v3
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: crunch64-${{ matrix.crate-type }}-${{ matrix.target }}
           path: |
             crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.tar.gz
-          if-no-files-found: error
-
-      - name: Upload .zip archive
-        if: matrix.archive == 'zip'
-        uses: actions/upload-artifact@v3
-        with:
-          name: crunch64-${{ matrix.crate-type }}-${{ matrix.target }}
-          path: |
             crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip
           if-no-files-found: error
 

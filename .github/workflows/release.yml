@@ -1,73 +1,71 @@
-name: Rust crate and cli release
+name: Release
 
 on:
   push:
-  pull_request:
-  workflow_dispatch:
+    tags:
+      - "v*.*.*"
 
 jobs:
-  release:
-    name: release ${{ matrix.target }}
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
-        include: # https://github.com/rust-build/rust-build.action#supported-targets
-          - target: x86_64-pc-windows-gnu
-            archive: zip
-          - target: x86_64-apple-darwin
-            archive: zip
-          - target: x86_64-unknown-linux-musl
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
             archive: tar.gz
-
+            bin: crunch64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            archive: zip
+            bin: crunch64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive: zip
+            bin: crunch64.exe
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Compile cli for artifact
-        id: compile_cli
-        uses: rust-build/rust-build.action@v1.4.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          RUSTTARGET: ${{ matrix.target }}
-          ARCHIVE_TYPES: ${{ matrix.archive }}
-          SRC_DIR: cli/
-          UPLOAD_MODE: none
-
-      - name: Upload cli artifact
-        uses: actions/upload-artifact@v3
+          targets: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: |
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            cargo build --release --manifest-path cli/Cargo.toml
+          else
+            cargo build --release --manifest-path cli/Cargo.toml --target ${{ matrix.target }}
+          fi
+      - name: Create archive
+        run: |
+          folder=crunch64-v${{ github.ref_name }}-${{ matrix.target }}
+          mkdir -p $folder
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            copy cli\\target\\release\\${{ matrix.bin }} $folder\\
+            copy README.md LICENSE $folder\\
+            7z a $folder.zip $folder
+          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+            cp cli/target/${{ matrix.target }}/release/${{ matrix.bin }} $folder/
+            cp README.md LICENSE $folder/
+            zip -r $folder.zip $folder
+          else
+            cp cli/target/release/${{ matrix.bin }} $folder/
+            cp README.md LICENSE $folder/
+            tar -czvf $folder.tar.gz $folder
+          fi
+      - uses: actions/upload-artifact@v4
         with:
-          name: crunch64-cli-${{ matrix.target }}
-          path: |
-            ${{ steps.compile_cli.outputs.BUILT_ARCHIVE }}
-            ${{ steps.compile_cli.outputs.BUILT_CHECKSUM }}
+          name: ${{ matrix.target }}
+          path: crunch64-v${{ github.ref_name }}-${{ matrix.target }}.*
 
-      - name: Compile and release cli
-        uses: rust-build/rust-build.action@v1.4.4
-        if: startsWith(github.ref, 'refs/tags/')
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          RUSTTARGET: ${{ matrix.target }}
-          ARCHIVE_TYPES: ${{ matrix.archive }}
-          SRC_DIR: cli/
-          UPLOAD_MODE: release
-  publish:
+  release:
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: actions/download-artifact@v4
         with:
-          toolchain: stable
-          override: true
-
-      - name: Publish crate
-        uses: katyo/publish-crates@v2
-        if: startsWith(github.ref, 'refs/tags/')
+          path: artifacts
+      - name: Release
+        uses: softprops/action-gh-release@v2
         with:
-          path: "lib/"
-          registry-token: ${{ secrets.CRATE_AUTH_TOKEN }}
+          files: artifacts/**/*
