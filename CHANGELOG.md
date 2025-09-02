@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.4] - 2024-12-15
+
+### Fixed
+
+- Since 20.04 is deprecated, c-bindings CI flow now uses ubuntu 22.04.
+- Set MSRV (minimum supported Rust version) to 1.74
+  - Dependencies like clap and others require v1.74 (or newer).
+- Update pyo3 to a version for pypy 3.11 support.
+- Upgrade various other GitHub actions to newer versions to hopefully not need to worry about it for the near future.
+
 ## [0.5.3] - 2024-12-15
 
 ### Fixed

@@ -723,8 +723,8 @@ impl BlockWriter {
             + compressed_size_bits(&self.lfreqs, &lcode, &L_EXTRA_BITS)
             + compressed_size_bits(&self.dfreqs, &dcode, &D_EXTRA_BITS);
 
-        let fixed_size_bytes = (fixed_size_bits + 7) / 8;
-        let dynamic_size_bytes = (dynamic_size_bits + 7) / 8;
+        let fixed_size_bytes = fixed_size_bits.div_ceil(8);
+        let dynamic_size_bytes = dynamic_size_bits.div_ceil(8);
 
         let uncompressed_size_bytes = if let Some(bytes) = input_bytes {
             4 + bytes.len()
@@ -869,10 +869,10 @@ fn size_for_compressed_buffer(input_size: usize) -> Result<usize, Crunch64Error>
     // before we can emit them). The minimum block size is 0x1000 bytes (if
     // `should_flush_block` decides to end a block early) and each block
     // requires a 3-bit header.
-    let upper_bound_bits = 3 * ((input_size + 0xFFF) / 0x1000) // block headers
+    let upper_bound_bits = 3 * input_size.div_ceil(0x1000)// block headers
         + 9 * input_size // literals
         + 8 * 8; // footer
-    Ok((upper_bound_bits + 7) / 8)
+    Ok(upper_bound_bits.div_ceil(8))
 }
 
 pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>, Crunch64Error> {
