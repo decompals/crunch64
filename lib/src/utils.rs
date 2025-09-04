@@ -121,7 +121,7 @@ pub(crate) struct Window<'a> {
 }
 
 impl Window<'_> {
-    pub(crate) fn new(input: &[u8]) -> Window {
+    pub(crate) fn new(input: &[u8]) -> Window<'_> {
         let mut hash = 0;
         for &b in input.iter().take(MIN_MATCH) {
             hash = update_hash(hash, b);
