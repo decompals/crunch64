@@ -36,12 +36,12 @@ pub fn read_u32(bytes: &[u8], offset: usize) -> Result<u32, Crunch64Error> {
 pub(crate) fn u8_vec_from_pointer_array(
     src_len: usize,
     src: *const u8,
-) -> Result<Vec<u8>, Crunch64Error> {
+) -> Result<alloc::vec::Vec<u8>, Crunch64Error> {
     if src.is_null() {
         return Err(Crunch64Error::NullPointer);
     }
 
-    let mut bytes = Vec::with_capacity(src_len);
+    let mut bytes = alloc::vec::Vec::with_capacity(src_len);
 
     for i in 0..src_len {
         bytes.push(unsafe { *src.add(i) });

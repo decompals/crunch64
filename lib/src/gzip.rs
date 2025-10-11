@@ -1115,7 +1115,7 @@ pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>
 
 #[cfg(feature = "c_bindings")]
 mod c_bindings {
-    use std::ffi::c_int;
+    use core::ffi::c_int;
 
     #[no_mangle]
     pub extern "C" fn crunch64_gzip_compress_bound(
