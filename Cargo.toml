@@ -1,3 +1,17 @@
 [workspace]
 members = ["lib", "cli"]
 resolver = "2"
+
+[workspace.package]
+# Version should be synced with lib/pyproject.toml and lib/crunch64/__init__.py
+version = "0.5.4"
+edition = "2021"
+repository = "https://github.com/decompals/crunch64"
+license = "MIT"
+
+# Use https://github.com/foresterre/cargo-msrv to check the MSRV
+# ```
+# cargo install cargo-msrv --locked --force
+# cargo msrv find -- cargo check -p crunch64
+# ```
+rust-version = "1.74.0"

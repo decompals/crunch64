@@ -1,12 +1,11 @@
 [package]
 name = "crunch64"
-# Version should be synced with lib/pyproject.toml and lib/crunch64/__init__.py
-version = "0.5.4"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
 description = "A library for handling common compression formats for N64 games"
-repository = "https://github.com/decompals/crunch64"
-license = "MIT"
-rust-version = "1.74.0"
+repository.workspace = true
+license.workspace = true
+rust-version.workspace = true
 categories = ["no-std"]
 
 [lib]
