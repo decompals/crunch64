@@ -1,4 +1,4 @@
-use std::cmp;
+use core::cmp;
 
 use crate::Crunch64Error;
 

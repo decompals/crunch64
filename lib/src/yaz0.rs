@@ -1,5 +1,7 @@
 // Based on https://gist.github.com/Mr-Wiseguy/6cca110d74b32b5bb19b76cfa2d7ab4f
 
+use alloc::{boxed::Box, vec::Vec};
+
 use crate::{utils, Crunch64Error};
 
 fn parse_header(bytes: &[u8]) -> Result<usize, Crunch64Error> {
@@ -305,6 +307,7 @@ pub(crate) mod python_bindings {
 }
 
 #[cfg(test)]
+#[cfg(feature = "std")]
 mod tests {
     use crate::Crunch64Error;
     use core::panic;

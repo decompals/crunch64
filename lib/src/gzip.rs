@@ -5,6 +5,9 @@
 // original gzip code and https://datatracker.ietf.org/doc/html/rfc1951 for
 // details on the DEFLATE compression format.
 
+use alloc::{boxed::Box, vec::Vec};
+use core::cmp;
+
 use crate::{utils, Crunch64Error};
 
 // Bitstream writer for compressed output
@@ -146,13 +149,13 @@ struct Tree {
 }
 
 impl Ord for Tree {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> cmp::Ordering {
         (self.freq, self.depth).cmp(&(other.freq, other.depth))
     }
 }
 
 impl PartialOrd for Tree {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         Some(self.cmp(other))
     }
 }
@@ -253,7 +256,7 @@ impl HuffmanCode {
             let new_tree = Tree {
                 root: new_node,
                 freq: node1.freq + node2.freq,
-                depth: 1 + std::cmp::max(node1.depth, node2.depth),
+                depth: 1 + cmp::max(node1.depth, node2.depth),
             };
             heap.replace_min(new_tree);
         }
@@ -731,7 +734,7 @@ impl BlockWriter {
         } else {
             usize::MAX
         };
-        let compressed_size_bytes = std::cmp::min(fixed_size_bytes, dynamic_size_bytes);
+        let compressed_size_bytes = cmp::min(fixed_size_bytes, dynamic_size_bytes);
 
         // Write block
         output.write_bits(eof as u16, 1);
@@ -916,7 +919,7 @@ pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>
         .copy_from_slice(ORIGINAL_GZIP_GARBAGE);
 
     // Position in input buffer
-    let mut input_pos = std::cmp::min(2 * WINDOW_SIZE, input_size);
+    let mut input_pos = cmp::min(2 * WINDOW_SIZE, input_size);
     // True if we have reached the end of input
     let mut eof: bool = input_size < 2 * WINDOW_SIZE;
     // Length of current block
@@ -999,7 +1002,7 @@ pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>
                 }
             }
 
-            best_len = std::cmp::min(best_len, lookahead);
+            best_len = cmp::min(best_len, lookahead);
             if best_len == MIN_MATCH && pos - best_pos > TOO_FAR {
                 best_len = MIN_MATCH - 1;
             }
@@ -1080,7 +1083,7 @@ pub fn compress(bytes: &[u8], level: usize, small_mem: bool) -> Result<Box<[u8]>
             }
 
             let refill_start = input_pos;
-            let refill_end = std::cmp::min(refill_start + WINDOW_SIZE, input_size);
+            let refill_end = cmp::min(refill_start + WINDOW_SIZE, input_size);
             let refill_size = refill_end - refill_start;
             window[WINDOW_SIZE..WINDOW_SIZE + refill_size]
                 .copy_from_slice(&bytes[refill_start..refill_end]);
@@ -1189,6 +1192,7 @@ pub(crate) mod python_bindings {
 }
 
 #[cfg(test)]
+#[cfg(feature = "std")]
 mod tests {
     use crate::Crunch64Error;
     use core::panic;
