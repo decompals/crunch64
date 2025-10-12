@@ -51,7 +51,7 @@ impl std::convert::From<Crunch64Error> for PyErr {
 
 #[cfg(feature = "python_bindings")]
 #[pymodule]
-fn crunch64(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+fn crunch64(_py: Python<'_>, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(yay0::python_bindings::decompress_yay0, m)?)?;
     m.add_function(wrap_pyfunction!(yay0::python_bindings::compress_yay0, m)?)?;
     m.add_function(wrap_pyfunction!(yaz0::python_bindings::decompress_yaz0, m)?)?;

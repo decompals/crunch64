@@ -1,15 +1,16 @@
 [package]
 name = "crunch64-cli"
-version = "0.5.1"
+version = "0.5.4"
 edition = "2021"
 description = "A utility for compressing/decompressing files with common n64 formats"
 repository = "https://github.com/decompals/crunch64"
 license = "MIT"
+rust-version = "1.74.0"
 
 [[bin]]
 name = "crunch64"
 path = "src/main.rs"
 
 [dependencies]
-crunch64 = { version = "0.5.1", path = "../lib" }
+crunch64 = { version = "0.5.4", path = "../lib" }
 clap = { version = "4.4.11", features = ["derive"] }
