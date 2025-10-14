@@ -113,10 +113,10 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
+          # We can't use pypy3.8 in CI
           python-version: |
             3.8 - 3.14
             3.x
-            pypy3.8
             pypy3.9
             pypy3.10
             pypy3.11
@@ -150,10 +150,10 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
+          # We can't use pypy3.8 in CI
           python-version: |
             3.8 - 3.14
             3.x
-            pypy3.8
             pypy3.9
             pypy3.10
             pypy3.11
