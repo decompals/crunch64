@@ -113,13 +113,12 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
-          # We can't use pypy3.8 in CI
+          # We can't use pypy3.8 nor pypy3.11 in CI
           python-version: |
             3.8 - 3.14
             3.x
             pypy3.9
             pypy3.10
-            pypy3.11
           architecture: ${{ matrix.platform.target }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -233,8 +232,8 @@ jobs:
         if: ${{ startsWith(github.ref, 'refs/tags/') }}
         uses: PyO3/maturin-action@v1
         env:
-          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
           PYO3_USE_ABI3_FORWARD_COMPATIBILITY: 1
+          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
         with:
           command: upload
           args: --non-interactive --skip-existing wheels-*/*

@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `no_std` support.
   - `alloc` is still required.
 - Prebuilt binaries for Python 3.14.
+- Prebuilt binaries for Python 3.8.
+
+### Changed
+
+- Python 3.8 is supported again.
+  - CI allows us to build for 3.8 again.
+- Change the hard requirement of Python 3.9 to just Python 3 in the package metadata.
+  - Note there's no official support for Python versions older than 3.8.
 
 ## [0.5.4] - 2024-12-15
 
