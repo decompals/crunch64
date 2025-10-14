@@ -8,9 +8,9 @@ jobs:
     name: Test for Python ${{ matrix.py_version }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         py_version:
-          - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
