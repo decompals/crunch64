@@ -5,21 +5,36 @@ on: [push, pull_request]
 
 jobs:
   tests_cases:
-    name: Tests cases
+    name: Test for Python ${{ matrix.py_version }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      matrix:
+        py_version:
+          - '3.7'
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v5
+      - name: Checkout repo
+        uses: actions/checkout@v5
 
-    - name: Setup requirements
-      run: |
-        python3 -m pip install -U maturin
+      - name: Setup Python ${{ matrix.py_version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.py_version }}
 
-    - name: Install local crunch64
-      run: python3 -m pip install ./lib
+      - name: Setup requirements
+        run: |
+          python3 --version
+          python3 -m pip install -U maturin
 
-    - name: Run tests
-      run: python3 ./python_bindings/tests.py
+      - name: Install local crunch64
+        run: python3 -m pip install ./lib
+
+      - name: Run tests
+        run: python3 ./python_bindings/tests.py

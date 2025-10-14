@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.8 - 3.14'
+          python-version: '3.7 - 3.14'
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         env:
@@ -70,7 +70,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.8 - 3.14'
+          python-version: '3.7 - 3.14'
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         env:
@@ -101,7 +101,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.8 - 3.14'
+          python-version: '3.7 - 3.14'
           architecture: ${{ matrix.platform.target }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -132,7 +132,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.8 - 3.14'
+          python-version: '3.7 - 3.14'
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         env:
