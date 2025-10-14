@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: '3.8 - 3.14'
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         env:
@@ -47,10 +47,11 @@ jobs:
           manylinux: auto
           working-directory: lib/
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@main
         with:
           name: wheels-linux-${{ matrix.platform.target }}
           path: dist
+          if-no-files-found: error
 
   musllinux:
     runs-on: ${{ matrix.platform.runner }}
@@ -69,7 +70,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: '3.8 - 3.14'
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         env:
@@ -81,10 +82,11 @@ jobs:
           manylinux: musllinux_1_2
           working-directory: lib/
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@main
         with:
           name: wheels-musllinux-${{ matrix.platform.target }}
           path: dist
+          if-no-files-found: error
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
@@ -99,7 +101,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: '3.8 - 3.14'
           architecture: ${{ matrix.platform.target }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -111,10 +113,11 @@ jobs:
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           working-directory: lib/
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@main
         with:
           name: wheels-windows-${{ matrix.platform.target }}
           path: dist
+          if-no-files-found: error
 
   macos:
     runs-on: ${{ matrix.platform.runner }}
@@ -129,7 +132,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.x
+          python-version: '3.8 - 3.14'
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         env:
@@ -140,10 +143,11 @@ jobs:
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           working-directory: lib/
       - name: Upload wheels
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@main
         with:
           name: wheels-macos-${{ matrix.platform.target }}
           path: dist
+          if-no-files-found: error
 
   sdist:
     runs-on: ubuntu-latest
@@ -158,10 +162,11 @@ jobs:
           args: --out ../dist
           working-directory: lib/
       - name: Upload sdist
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@main
         with:
           name: wheels-sdist
           path: dist
+          if-no-files-found: error
 
   check_clippy_python_bindings:
     name: Check clippy for Python bindings
@@ -205,6 +210,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_PASSWORD }}
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: 1
         with:
           command: upload
           args: --non-interactive --skip-existing wheels-*/*
