@@ -33,7 +33,7 @@ jobs:
             target: ppc64le
     steps:
       - uses: actions/checkout@main
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: |
             3.8 - 3.14
@@ -74,7 +74,7 @@ jobs:
             target: armv7
     steps:
       - uses: actions/checkout@main
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: |
             3.8 - 3.14
@@ -111,7 +111,7 @@ jobs:
             target: x86
     steps:
       - uses: actions/checkout@main
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           # We can't use pypy3.8 nor pypy3.11 in CI
           python-version: |
@@ -147,7 +147,7 @@ jobs:
             target: aarch64
     steps:
       - uses: actions/checkout@main
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           # We can't use pypy3.8 in CI
           python-version: |
