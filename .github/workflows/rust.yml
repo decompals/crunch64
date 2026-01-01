@@ -62,3 +62,17 @@ jobs:
       # To find current MSRV use `cargo msrv find`. Install it with `cargo install cargo-msrv --locked`
       - name: Run MSRV checker
         run: cargo hack check --rust-version --workspace --all-targets --ignore-private
+
+  msrv_no_default:
+    name: Check MSRV
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout reposistory
+        uses: actions/checkout@v5
+
+      - name: Setup MSRV checker
+        uses: taiki-e/install-action@cargo-hack
+
+      # To find current MSRV use `cargo msrv find`. Install it with `cargo install cargo-msrv --locked`
+      - name: Run MSRV checker
+        run: cargo hack check --rust-version --workspace --all-targets --ignore-private --no-default-features

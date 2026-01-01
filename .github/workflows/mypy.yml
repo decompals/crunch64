@@ -5,15 +5,28 @@ on: [push, pull_request]
 
 jobs:
   checks:
+    name: mypy Python ${{ matrix.py_version }}
     runs-on: ubuntu-latest
-    name: mypy
+    strategy:
+      fail-fast: false
+      matrix:
+        py_version:
+          - '3.8'
+          - '3.9'
+          - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
+          - '3.x' # Explicit latest
+
     steps:
       - uses: actions/checkout@v5
 
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v5
+      - name: Set up Python ${{ matrix.py_version }}
+        uses: actions/setup-python@v6
         with:
-          python-version: 3.9
+          python-version: ${{ matrix.py_version }}
 
       - name: Install Dependencies
         run: |

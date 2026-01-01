@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-10-11
+
+### Added
+
+- `no_std` support.
+  - `alloc` is still required.
+- Prebuilt binaries for Python 3.14.
+- Prebuilt binaries for Python 3.8.
+
+### Changed
+
+- Python 3.8 is supported again.
+  - CI allows us to build for 3.8 again.
+- Change the hard requirement of Python 3.9 to just Python 3 in the package metadata.
+  - Note there's no official support for Python versions older than 3.8.
+
 ## [0.5.4] - 2024-12-15
 
 ### Fixed
@@ -101,7 +117,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python bindings.
 - C bindings.
 
-[unreleased]: https://github.com/decompals/crunch64/compare/0.5.1...HEAD
+[unreleased]: https://github.com/decompals/crunch64/compare/0.6.0...HEAD
+[0.6.0]: https://github.com/decompals/crunch64/compare/0.5.3...0.6.0
 [0.5.3]: https://github.com/decompals/crunch64/compare/0.5.2...0.5.3
 [0.5.2]: https://github.com/decompals/crunch64/compare/0.5.1...0.5.2
 [0.5.1]: https://github.com/decompals/crunch64/compare/0.5.0...0.5.1
