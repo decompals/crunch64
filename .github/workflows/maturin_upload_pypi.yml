@@ -65,7 +65,7 @@ jobs:
         # Check the built wheel is installable on the oldest Python supported
         run: |
           find -name "./dist/crunch64-*-abi3-*"
-          uv venv --no-project -p 3.8
+          uv venv -p 3.8
           source .venv/bin/activate
           uv pip install $(find -name "./dist/crunch64-*-abi3-*")
           uvx python -c "import crunch64; print(crunch64.__version__)"
@@ -117,7 +117,7 @@ jobs:
         # Check the built wheel is installable on the oldest Python supported
         run: |
           find -name "./dist/crunch64-*-abi3-*"
-          uv venv --no-project -p 3.8
+          uv venv -p 3.8
           source .venv/bin/activate
           uv pip install $(find -name "./dist/crunch64-*-abi3-*")
           uvx python -c "import crunch64; print(crunch64.__version__)"
@@ -173,7 +173,7 @@ jobs:
         # Check the built wheel is installable on the oldest Python supported
         run: |
           find -name "./dist/crunch64-*-abi3-*"
-          uv venv --no-project -p 3.8
+          uv venv -p 3.8
           source .venv/Scripts/Activate.ps1
           uv pip install $(find -name "./dist/crunch64-*-abi3-*")
           uvx python -c "import crunch64; print(crunch64.__version__)"
@@ -219,7 +219,7 @@ jobs:
         # Check the built wheel is installable on the oldest Python supported
         run: |
           find -name "./dist/crunch64-*-abi3-*"
-          uv venv --no-project -p 3.8
+          uv venv -p 3.8
           source .venv/bin/activate
           uv pip install $(find -name "./dist/crunch64-*-abi3-*")
           uvx python -c "import crunch64; print(crunch64.__version__)"
