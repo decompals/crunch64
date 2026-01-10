@@ -109,6 +109,44 @@ jobs:
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
           uv run python -c "import crunch64; print(crunch64.__version__)"
 
+  linux_pypy:
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - runner: ubuntu-22.04
+            target: x86_64
+          - runner: ubuntu-22.04
+            target: x86
+          - runner: ubuntu-22.04
+            target: aarch64
+          - runner: ubuntu-22.04
+            target: armv7
+          - runner: ubuntu-22.04
+            target: s390x
+          - runner: ubuntu-22.04
+            target: ppc64le
+    steps:
+      - uses: actions/checkout@main
+      - uses: actions/setup-python@v6
+        with:
+          python-version: pypy3.7
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          args: --release --out ../dist -i pypy3.7
+          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
+          manylinux: auto
+          working-directory: lib/
+      - name: Upload wheels
+        uses: actions/upload-artifact@main
+        with:
+          name: wheels-linux-pypy-${{ matrix.platform.target }}
+          path: dist
+          if-no-files-found: error
+
   musllinux:
     runs-on: ${{ matrix.platform.runner }}
     strategy:
