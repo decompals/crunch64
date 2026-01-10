@@ -75,7 +75,7 @@ jobs:
           uv venv -p 3.8
           source .venv/bin/activate
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
-          uvx python -c "import crunch64; print(crunch64.__version__)"
+          uv run python -c "import crunch64; print(crunch64.__version__)"
 
   musllinux:
     runs-on: ${{ matrix.platform.runner }}
@@ -127,7 +127,7 @@ jobs:
           uv venv -p 3.8
           source .venv/bin/activate
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
-          uvx python -c "import crunch64; print(crunch64.__version__)"
+          uv run python -c "import crunch64; print(crunch64.__version__)"
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
@@ -183,7 +183,7 @@ jobs:
           uv venv -p 3.8
           source .venv/Scripts/Activate.ps1
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
-          uvx python -c "import crunch64; print(crunch64.__version__)"
+          uv run python -c "import crunch64; print(crunch64.__version__)"
 
   macos:
     runs-on: ${{ matrix.platform.runner }}
@@ -229,11 +229,10 @@ jobs:
         # Check the built wheel is installable on the oldest Python supported
         run: |
           find ./dist/ -name "crunch64-*-abi3-*"
-          tree ./dist
           uv venv -p 3.8
           source .venv/bin/activate
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
-          uvx python -c "import crunch64; print(crunch64.__version__)"
+          uv run python -c "import crunch64; print(crunch64.__version__)"
 
   sdist:
     runs-on: ubuntu-latest
