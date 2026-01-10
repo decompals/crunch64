@@ -258,7 +258,7 @@ jobs:
         run: |
           Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*"
           uv venv -p ${{ matrix.platform.python_version_min }}
-          .venv/Scripts/Activate.ps1
+          .venv\Scripts\Activate.ps1
           uv run python --version
           uv pip install $(Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*")
           uv run python -c "import crunch64; print(crunch64.__version__)"
@@ -268,7 +268,7 @@ jobs:
           Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*"
           Remove-Item -r .venv
           uv venv .venv -p ${{ matrix.platform.python_version_max }}
-          .venv/Scripts/Activate.ps1
+          .venv\Scripts\Activate.ps1
           uv run python --version
           uv pip install $(Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*")
           uv run python -c "import crunch64; print(crunch64.__version__)"
