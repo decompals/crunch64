@@ -63,17 +63,17 @@ jobs:
         uses: astral-sh/setup-uv@v7
       - name: Print
         run: |
-          find ./dist/ -wholename "crunch64-*-abi3-*"
+          find ./dist/ -name "crunch64-*-abi3-*"
       - name: Print 2
         run: |
           tree "./dist/"
       - name: Test wheels
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          find ./dist/ -wholename "crunch64-*-abi3-*"
+          find ./dist/ -name "crunch64-*-abi3-*"
           uv venv -p 3.8
           source .venv/bin/activate
-          uv pip install $(find ./dist/ -wholename "crunch64-*-abi3-*")
+          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
           uvx python -c "import crunch64; print(crunch64.__version__)"
 
   musllinux:
@@ -122,10 +122,10 @@ jobs:
       - name: Test wheels
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          find ./dist/ -wholename "crunch64-*-abi3-*"
+          find ./dist/ -name "crunch64-*-abi3-*"
           uv venv -p 3.8
           source .venv/bin/activate
-          uv pip install $(find ./dist/ -wholename "crunch64-*-abi3-*")
+          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
           uvx python -c "import crunch64; print(crunch64.__version__)"
 
   windows:
@@ -178,10 +178,10 @@ jobs:
       - name: Test wheels
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          find ./dist/ -wholename "crunch64-*-abi3-*"
+          find ./dist/ -name "crunch64-*-abi3-*"
           uv venv -p 3.8
           source .venv/Scripts/Activate.ps1
-          uv pip install $(find ./dist/ -wholename "crunch64-*-abi3-*")
+          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
           uvx python -c "import crunch64; print(crunch64.__version__)"
 
   macos:
@@ -223,15 +223,15 @@ jobs:
         uses: astral-sh/setup-uv@v7
       - name: Print
         run: |
-          find ./dist/ -wholename "crunch64-*-abi3-*"
+          find ./dist/ -name "crunch64-*-abi3-*"
       - name: Test wheels
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          find ./dist/ -wholename "crunch64-*-abi3-*"
+          find ./dist/ -name "crunch64-*-abi3-*"
           tree ./dist
           uv venv -p 3.8
           source .venv/bin/activate
-          uv pip install $(find ./dist/ -wholename "crunch64-*-abi3-*")
+          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
           uvx python -c "import crunch64; print(crunch64.__version__)"
 
   sdist:
