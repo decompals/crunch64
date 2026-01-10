@@ -68,8 +68,8 @@ jobs:
         run: |
           tree "./dist/"
       - name: Test wheels
-        # Check the built wheel is installable on the oldest Python supported
         if: ${{ matrix.platform.target == 'x86_64' }}
+        # Check the built wheel is installable on the oldest Python supported
         run: |
           find ./dist/ -name "crunch64-*-abi3-*"
           uv venv -p 3.8
@@ -171,6 +171,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v7
       - name: Test wheels
+        if: ${{ matrix.platform.target == 'x64' }}
         # Check the built wheel is installable on the oldest Python supported
         run: |
           Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*"
