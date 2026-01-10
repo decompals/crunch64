@@ -103,7 +103,7 @@ jobs:
         run: |
           find ./dist/ -name "crunch64-*-abi3-*"
           rm -rf .venv
-          uv venv .venv -p ${{ matrix.platform.python_version_max }}+gil
+          uv venv .venv -p ${{ matrix.platform.python_version_max }} --no-managed-python
           source .venv/bin/activate
           uv run python --version
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
@@ -267,7 +267,7 @@ jobs:
         run: |
           Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*"
           Remove-Item -r .venv
-          uv venv .venv -p ${{ matrix.platform.python_version_max }}+gil
+          uv venv .venv -p ${{ matrix.platform.python_version_max }} --no-managed-python
           .venv\Scripts\Activate.ps1
           uv run python --version
           uv pip install $(Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*")
@@ -328,7 +328,7 @@ jobs:
         # Check the built wheel is installable on the oldest Python supported
         run: |
           find ./dist/ -name "crunch64-*-abi3-*"
-          uv venv .venv -p ${{ matrix.platform.python_version_max }}+gil
+          uv venv .venv -p ${{ matrix.platform.python_version_max }} --no-managed-python
           source .venv/bin/activate
           uv run python --version
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
