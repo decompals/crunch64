@@ -118,17 +118,7 @@ jobs:
           path: dist
           if-no-files-found: error
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
-      - name: Test wheels
-        # Check the built wheel is installable on the oldest Python supported
-        if: ${{ matrix.platform.target == 'x86_64' }}
-        run: |
-          find ./dist/ -name "crunch64-*-abi3-*"
-          uv venv -p 3.8
-          source .venv/bin/activate
-          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
-          uv run python -c "import crunch64; print(crunch64.__version__)"
+      # We can't test musllinux wheels on manylinux runners
 
   windows:
     runs-on: ${{ matrix.platform.runner }}
@@ -182,7 +172,7 @@ jobs:
         run: |
           find ./dist/ -name "crunch64-*-abi3-*"
           uv venv -p 3.8
-          source .venv/Scripts/Activate.ps1
+          .venv/Scripts/Activate.ps1
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
           uv run python -c "import crunch64; print(crunch64.__version__)"
 
@@ -204,7 +194,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ../dist
+          args: --release --out ../dist --find-interpreter
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           working-directory: lib/
       - name: Build free-threaded wheels
