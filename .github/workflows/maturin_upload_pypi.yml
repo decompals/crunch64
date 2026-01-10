@@ -215,10 +215,14 @@ jobs:
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7
+      - name: Print
+        run: |
+          find -name "./dist/crunch64-*-abi3-*"
       - name: Test wheels
         # Check the built wheel is installable on the oldest Python supported
         run: |
           find -name "./dist/crunch64-*-abi3-*"
+          tree ./dist
           uv venv -p 3.8
           source .venv/bin/activate
           uv pip install $(find -name "./dist/crunch64-*-abi3-*")
