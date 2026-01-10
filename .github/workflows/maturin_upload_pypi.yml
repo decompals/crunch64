@@ -175,7 +175,7 @@ jobs:
         # Check the built wheel is installable on the oldest Python supported
         run: |
           Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*"
-          uv venv -p ${{ matrix.platform.python_arch }}
+          uv venv -p ${{ matrix.platform.python_version_min }}
           .venv/Scripts/Activate.ps1
           uv pip install $(Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*")
           uv run python -c "import crunch64; print(crunch64.__version__)"
