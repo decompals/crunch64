@@ -22,27 +22,27 @@ jobs:
         platform:
           - runner: ubuntu-22.04
             target: x86_64
-            python_version_min: '3.3'
+            python_version_min: '3.5'
             python_version_max: '3.14'
           - runner: ubuntu-22.04
             target: x86
-            python_version_min: '3.3'
+            python_version_min: '3.5'
             python_version_max: '3.14'
           - runner: ubuntu-22.04
             target: aarch64
-            python_version_min: '3.3'
+            python_version_min: '3.5'
             python_version_max: '3.14'
           - runner: ubuntu-22.04
             target: armv7
-            python_version_min: '3.3'
+            python_version_min: '3.5'
             python_version_max: '3.14'
           - runner: ubuntu-22.04
             target: s390x
-            python_version_min: '3.3'
+            python_version_min: '3.5'
             python_version_max: '3.14'
           - runner: ubuntu-22.04
             target: ppc64le
-            python_version_min: '3.3'
+            python_version_min: '3.5'
             python_version_max: '3.14'
     steps:
       - uses: actions/checkout@main
@@ -115,16 +115,16 @@ jobs:
         platform:
           - runner: ubuntu-22.04
             target: x86_64
-            python_version_min: '3.3'
+            python_version_min: '3.5'
           - runner: ubuntu-22.04
             target: x86
-            python_version_min: '3.3'
+            python_version_min: '3.5'
           - runner: ubuntu-22.04
             target: aarch64
-            python_version_min: '3.3'
+            python_version_min: '3.5'
           - runner: ubuntu-22.04
             target: armv7
-            python_version_min: '3.3'
+            python_version_min: '3.5'
     steps:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v6
@@ -164,12 +164,12 @@ jobs:
           - runner: windows-latest
             target: x64
             python_arch: x64
-            python_version_min: '3.3'
+            python_version_min: '3.5'
             python_version_max: '3.14'
           - runner: windows-latest
             target: x86
             python_arch: x86
-            python_version_min: '3.3'
+            python_version_min: '3.5'
             python_version_max: '3.14'
           - runner: windows-11-arm
             target: aarch64
@@ -238,7 +238,7 @@ jobs:
         platform:
           - runner: macos-15-intel
             target: x86_64
-            python_version_min: '3.3'
+            python_version_min: '3.5'
             python_version_max: '3.14'
           - runner: macos-latest
             target: aarch64
