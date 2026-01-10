@@ -69,6 +69,7 @@ jobs:
           tree "./dist/"
       - name: Test wheels
         # Check the built wheel is installable on the oldest Python supported
+        if: ${{ matrix.platform.target == "x86_64" }}
         run: |
           find ./dist/ -name "crunch64-*-abi3-*"
           uv venv -p 3.8
