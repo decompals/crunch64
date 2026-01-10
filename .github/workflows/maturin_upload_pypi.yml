@@ -94,6 +94,7 @@ jobs:
           find ./dist/ -name "crunch64-*-abi3-*"
           uv venv -p ${{ matrix.platform.python_version_min }}
           source .venv/bin/activate
+          uv run python --version
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
           uv run python -c "import crunch64; print(crunch64.__version__)"
       - name: Test wheels with max version (${{ matrix.platform.python_version_max }})
@@ -104,6 +105,7 @@ jobs:
           rm -rf .venv
           uv venv .venv -p ${{ matrix.platform.python_version_max }}
           source .venv/bin/activate
+          uv run python --version
           uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
           uv run python -c "import crunch64; print(crunch64.__version__)"
 
@@ -164,12 +166,12 @@ jobs:
           - runner: windows-latest
             target: x64
             python_arch: x64
-            python_version_min: '3.7'
+            python_version_min: '3.8'
             python_version_max: '3.14'
           - runner: windows-latest
             target: x86
             python_arch: x86
-            python_version_min: '3.7'
+            python_version_min: '3.8'
             python_version_max: '3.14'
           - runner: windows-11-arm
             target: aarch64
