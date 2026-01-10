@@ -64,6 +64,9 @@ jobs:
       - name: Print
         run: |
           find -name "./dist/crunch64-*-abi3-*"
+      - name: Print 2
+        run: |
+          tree "./dist/"
       - name: Test wheels
         # Check the built wheel is installable on the oldest Python supported
         run: |
