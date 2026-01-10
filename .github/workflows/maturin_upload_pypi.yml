@@ -138,7 +138,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v6
         with:
-          python-version: 3.13
+          python-version: 3.8
           architecture: ${{ matrix.platform.python_arch }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
@@ -170,10 +170,10 @@ jobs:
       - name: Test wheels
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          find ./dist/ -name "crunch64-*-abi3-*"
+          Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*"
           uv venv -p 3.8
           .venv/Scripts/Activate.ps1
-          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
+          uv pip install $(Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*")
           uv run python -c "import crunch64; print(crunch64.__version__)"
 
   macos:
@@ -189,7 +189,7 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v6
         with:
-          python-version: 3.x
+          python-version: 3.8
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
