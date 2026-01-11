@@ -60,15 +60,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }} pypy3.9 pypy3.10 pypy3.11
-          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
-          manylinux: auto
-          working-directory: lib/
-      - name: Build free-threaded wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.platform.target }}
-          args: --release --out ../dist -i python3.14t
+          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }} pypy3.9 pypy3.10 pypy3.11 python3.14t
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
           working-directory: lib/
@@ -101,14 +93,20 @@ jobs:
         if: ${{ matrix.platform.target == 'x86_64' }}
         # Check the built wheel is installable on the newest Python we know of
         run: |
-          .github/scripts/ci_check_wheel.sh ${{ matrix.platform.python_version_max }} abi3
+          .github/scripts/ci_check_wheel.sh ${{ matrix.platform.python_version_max }} abi3 --managed-python
+
+      - name: Test wheels for free threaded
+        if: ${{ matrix.platform.target == 'x86_64' }}
+        # Check the built wheel is installable on the newest Python we know of
+        run: |
+          .github/scripts/ci_check_wheel.sh 3.14t cp314t --managed-python
 
       - name: Test pypy wheels
         if: ${{ matrix.platform.target == 'x86_64' }}
         run: |
-          .github/scripts/ci_check_wheel.sh pypy3.9 pypy39
-          .github/scripts/ci_check_wheel.sh pypy3.10 pypy310
-          .github/scripts/ci_check_wheel.sh pypy3.11 pypy311
+          .github/scripts/ci_check_wheel.sh pypy3.9 pypy39 --managed-python
+          .github/scripts/ci_check_wheel.sh pypy3.10 pypy310 --managed-python
+          .github/scripts/ci_check_wheel.sh pypy3.11 pypy311 --managed-python
 
   musllinux:
     runs-on: ${{ matrix.platform.runner }}

@@ -1,11 +1,12 @@
 
 PYTHON_VERSION=$1
 KEY=$2
+EXTRA=$3
 
 set -e
 
 rm -rf .venv
-uv venv -p $PYTHON_VERSION --managed-python
+uv venv -p $PYTHON_VERSION $EXTRA
 source .venv/bin/activate
 uv run python --version
 uv pip install $(find ./dist/ -name "crunch64-*-$KEY*")
