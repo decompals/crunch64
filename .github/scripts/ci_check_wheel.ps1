@@ -12,7 +12,10 @@ param (
 # Equivalent to `set -e`
 $ErrorActionPreference = "Stop"
 
-Remove-Item -Recurse -Force ".venv"
+if (Test-Path ".venv") {
+    Remove-Item -Recurse -Force ".venv"
+}
+
 uv venv -p $PYTHON_VERSION $EXTRA
 ./.venv/Scripts/Activate.ps1
 uv run python --version
