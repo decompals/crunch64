@@ -53,6 +53,7 @@ jobs:
         with:
           python-version: |
             ${{ matrix.platform.python_version_min }}
+            3.14
             3.14t
             pypy3.9
             pypy3.10
@@ -132,6 +133,7 @@ jobs:
         with:
           python-version: |
             ${{ matrix.platform.python_version_min }}
+            3.14
             3.14t
             pypy3.9
             pypy3.10
@@ -180,16 +182,14 @@ jobs:
         with:
           python-version: |
             ${{ matrix.platform.python_version_min }}
+            3.14
             3.14t
-            pypy3.9
-            pypy3.10
-            pypy3.11
           architecture: ${{ matrix.platform.python_arch }}
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }} python3.14t pypy3.9 pypy3.10 pypy3.11
+          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }} python3.14t
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           working-directory: lib/
       - name: Upload wheels
@@ -243,6 +243,7 @@ jobs:
         with:
           python-version: |
             ${{ matrix.platform.python_version_min }}
+            3.14
             3.14t
             pypy3.9
             pypy3.10
