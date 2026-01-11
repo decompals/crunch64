@@ -15,7 +15,15 @@ if (Test-Path ".venv") {
     Remove-Item -Recurse -Force ".venv"
 }
 
-uv venv .venv -p $PYTHON_VERSION $EXTRA
+# When $EXTRA is empty powershell passes the argument as an empty argument to
+# uv, so we need to explicitly check the argument and only pass it if it is not
+# empty to avoid uv from erroring
+if ($EXTRA) {
+    uv venv .venv -p $PYTHON_VERSION $EXTRA
+} else {
+    uv venv .venv -p $PYTHON_VERSION
+}
+
 .\.venv\Scripts\Activate.ps1
 uv run python --version
 uv pip install $(Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*")
