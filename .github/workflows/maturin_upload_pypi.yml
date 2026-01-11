@@ -60,7 +60,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }} pypy3.9 pypy3.10 pypy3.11 python3.14t
+          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }} python3.14t pypy3.9 pypy3.10 pypy3.11
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
           working-directory: lib/
@@ -95,9 +95,8 @@ jobs:
         run: |
           .github/scripts/ci_check_wheel.sh ${{ matrix.platform.python_version_max }} abi3 --managed-python
 
-      - name: Test wheels for free threaded
+      - name: Test free threaded wheels
         if: ${{ matrix.platform.target == 'x86_64' }}
-        # Check the built wheel is installable on the newest Python we know of
         run: |
           .github/scripts/ci_check_wheel.sh 3.14t cp314t --managed-python
 
@@ -254,14 +253,7 @@ jobs:
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }}
-          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
-          working-directory: lib/
-      - name: Build free-threaded wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.platform.target }}
-          args: --release --out ../dist -i python3.14t
+          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }} python3.14t pypy3.9 pypy3.10 pypy3.11
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           working-directory: lib/
       - name: Upload wheels
@@ -276,21 +268,21 @@ jobs:
       - name: Test wheels with min version (${{ matrix.platform.python_version_min }})
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          find ./dist/ -name "crunch64-*-abi3-*"
-          uv venv -p ${{ matrix.platform.python_version_min }}
-          source .venv/bin/activate
-          uv run python --version
-          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
-          uv run python -c "import crunch64; print(crunch64.__version__)"
+          .github/scripts/ci_check_wheel.sh ${{ matrix.platform.python_version_min }} abi3
       - name: Test wheels with max version (${{ matrix.platform.python_version_max }})
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          find ./dist/ -name "crunch64-*-abi3-*"
-          uv venv .venv -p ${{ matrix.platform.python_version_max }} --managed-python
-          source .venv/bin/activate
-          uv run python --version
-          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
-          uv run python -c "import crunch64; print(crunch64.__version__)"
+          .github/scripts/ci_check_wheel.sh ${{ matrix.platform.python_version_max }} abi3
+
+      - name: Test free threaded wheels
+        run: |
+          .github/scripts/ci_check_wheel.sh 3.14t cp314t --managed-python
+
+      - name: Test pypy wheels
+        run: |
+          .github/scripts/ci_check_wheel.sh pypy3.9 pypy39 --managed-python
+          .github/scripts/ci_check_wheel.sh pypy3.10 pypy310 --managed-python
+          .github/scripts/ci_check_wheel.sh pypy3.11 pypy311 --managed-python
 
   sdist:
     runs-on: ubuntu-latest
