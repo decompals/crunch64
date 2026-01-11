@@ -209,7 +209,7 @@ jobs:
       - name: Test wheels with max version (${{ matrix.platform.python_version_max }})
         if: ${{ matrix.platform.target == 'x64' }}
         run: |
-          .github/scripts/ci_check_wheel.ps1 ${{ matrix.platform.python_version_max }} abi3
+          .github/scripts/ci_check_wheel.ps1 ${{ matrix.platform.python_version_max }} abi3 --managed-python
 
       - name: Test free threaded wheels
         if: ${{ matrix.platform.target == 'x86_64' }}
@@ -271,7 +271,7 @@ jobs:
       - name: Test wheels with max version (${{ matrix.platform.python_version_max }})
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          .github/scripts/ci_check_wheel.sh ${{ matrix.platform.python_version_max }} abi3
+          .github/scripts/ci_check_wheel.sh ${{ matrix.platform.python_version_max }} abi3 --managed-python
 
       - name: Test free threaded wheels
         run: |
