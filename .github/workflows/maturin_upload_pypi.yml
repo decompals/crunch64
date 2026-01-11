@@ -53,7 +53,6 @@ jobs:
         with:
           python-version: |
             ${{ matrix.platform.python_version_min }}
-            3.14
             3.14t
             pypy3.9
             pypy3.10
@@ -133,7 +132,6 @@ jobs:
         with:
           python-version: |
             ${{ matrix.platform.python_version_min }}
-            3.14
             3.14t
             pypy3.9
             pypy3.10
@@ -182,7 +180,6 @@ jobs:
         with:
           python-version: |
             ${{ matrix.platform.python_version_min }}
-            3.14
             3.14t
           architecture: ${{ matrix.platform.python_arch }}
       - name: Build wheels
@@ -243,7 +240,6 @@ jobs:
         with:
           python-version: |
             ${{ matrix.platform.python_version_min }}
-            3.14
             3.14t
             pypy3.9
             pypy3.10
