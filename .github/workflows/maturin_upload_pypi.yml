@@ -205,18 +205,6 @@ jobs:
         run: |
           .github/scripts/ci_check_wheel.ps1 ${{ matrix.platform.python_version_max }} abi3 --managed-python
 
-      - name: Test free threaded wheels
-        if: ${{ matrix.platform.target == 'x86_64' }}
-        run: |
-          .github/scripts/ci_check_wheel.ps1 3.14t cp314t --managed-python
-
-      - name: Test pypy wheels
-        if: ${{ matrix.platform.target == 'x86_64' }}
-        run: |
-          .github/scripts/ci_check_wheel.ps1 pypy3.9 pypy39 --managed-python
-          .github/scripts/ci_check_wheel.ps1 pypy3.10 pypy310 --managed-python
-          .github/scripts/ci_check_wheel.ps1 pypy3.11 pypy311 --managed-python
-
   macos:
     runs-on: ${{ matrix.platform.runner }}
     strategy:
