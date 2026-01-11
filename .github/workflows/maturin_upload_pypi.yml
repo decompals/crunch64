@@ -207,28 +207,29 @@ jobs:
           path: dist
           if-no-files-found: error
 
-      - name: Install uv
+      - name: Install uvci_check_wheel
         uses: astral-sh/setup-uv@v7
       - name: Test wheels with min version (${{ matrix.platform.python_version_min }})
         if: ${{ matrix.platform.target == 'x64' }}
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*"
-          uv venv -p ${{ matrix.platform.python_version_min }}
-          .venv\Scripts\Activate.ps1
-          uv run python --version
-          uv pip install $(Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*")
-          uv run python -c "import crunch64; print(crunch64.__version__)"
+          .github/scripts/ci_check_wheel.ps1 ${{ matrix.platform.python_version_min }} abi3
       - name: Test wheels with max version (${{ matrix.platform.python_version_max }})
         if: ${{ matrix.platform.target == 'x64' }}
         run: |
-          Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*"
-          Remove-Item -r .venv
-          uv venv .venv -p ${{ matrix.platform.python_version_max }} --managed-python
-          .venv\Scripts\Activate.ps1
-          uv run python --version
-          uv pip install $(Get-ChildItem -Path .\dist\ -Recurse -Filter "crunch64-*-abi3-*")
-          uv run python -c "import crunch64; print(crunch64.__version__)"
+          .github/scripts/ci_check_wheel.ps1 ${{ matrix.platform.python_version_max }} abi3
+
+      - name: Test free threaded wheels
+        if: ${{ matrix.platform.target == 'x86_64' }}
+        run: |
+          .github/scripts/ci_check_wheel.ps1 3.14t cp314t --managed-python
+
+      - name: Test pypy wheels
+        if: ${{ matrix.platform.target == 'x86_64' }}
+        run: |
+          .github/scripts/ci_check_wheel.ps1 pypy3.9 pypy39 --managed-python
+          .github/scripts/ci_check_wheel.ps1 pypy3.10 pypy310 --managed-python
+          .github/scripts/ci_check_wheel.ps1 pypy3.11 pypy311 --managed-python
 
   macos:
     runs-on: ${{ matrix.platform.runner }}
