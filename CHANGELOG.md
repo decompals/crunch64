@@ -7,7 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.6.0] - 2026-12-01
+## [0.6.1] - 2026-01-11
+
+### Added
+
+- CI now checks wheels are being installable in the oldest and newest Python versions supported.
+  - Only the wheels built for the architectures of the CI runner are actually tested, this currently means Windows x64, Linux x86_64, MacOS x86_64 and MacOS aarch64.
+- Prebuilt wheels for freethreaded Python 3.14.
+
+### Fixed
+
+- Fix prebuilt binaries not being compatible with older Python versions.
+  - CI now uses the oldest available Python version for each arch/os combination, so users don't have to build the project themselves.
+  - Wheels should all support the Python `abi3`, meaning they should be future proof and installable by future Python versions.
+
+## [0.6.0] - 2026-01-01
 
 ### Added
 
@@ -121,7 +135,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python bindings.
 - C bindings.
 
-[unreleased]: https://github.com/decompals/crunch64/compare/0.6.0...HEAD
+[unreleased]: https://github.com/decompals/crunch64/compare/0.6.1...HEAD
+[0.6.1]: https://github.com/decompals/crunch64/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/decompals/crunch64/compare/0.5.4...0.6.0
 [0.5.4]: https://github.com/decompals/crunch64/compare/0.5.3...0.5.4
 [0.5.3]: https://github.com/decompals/crunch64/compare/0.5.2...0.5.3

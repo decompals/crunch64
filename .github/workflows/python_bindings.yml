@@ -6,11 +6,12 @@ on: [push, pull_request]
 jobs:
   tests_cases:
     name: Test for Python ${{ matrix.py_version }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
         py_version:
+          - '3.7'
           - '3.8'
           - '3.9'
           - '3.10'
