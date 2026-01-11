@@ -106,9 +106,9 @@ jobs:
       - name: Test pypy wheels
         if: ${{ matrix.platform.target == 'x86_64' }}
         run: |
-          .github/scripts/ci_check_wheel.sh pypy3.9 pypy3.9
-          .github/scripts/ci_check_wheel.sh pypy3.10 pypy3.10
-          .github/scripts/ci_check_wheel.sh pypy3.11 pypy3.11
+          .github/scripts/ci_check_wheel.sh pypy3.9 pypy39
+          .github/scripts/ci_check_wheel.sh pypy3.10 pypy310
+          .github/scripts/ci_check_wheel.sh pypy3.11 pypy311
 
   musllinux:
     runs-on: ${{ matrix.platform.runner }}
