@@ -51,12 +51,16 @@ jobs:
       - uses: actions/checkout@main
       - uses: actions/setup-python@v6
         with:
-          python-version: ${{ matrix.platform.python_version_min }}
+          python-version: |
+            ${{ matrix.platform.python_version_min }}
+            pypy3.9
+            pypy3.10
+            pypy3.11
       - name: Build wheels
         uses: PyO3/maturin-action@v1
         with:
           target: ${{ matrix.platform.target }}
-          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }}
+          args: --release --out ../dist -i python${{ matrix.platform.python_version_min }} pypy3.9 pypy3.10 pypy3.11
           sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
           manylinux: auto
           working-directory: lib/
@@ -87,68 +91,24 @@ jobs:
       # so we hope the other built wheels will just work, hopefully.
       - name: Install uv
         uses: astral-sh/setup-uv@v7
+        if: ${{ matrix.platform.target == 'x86_64' }}
       - name: Test wheels with min version (${{ matrix.platform.python_version_min }})
         if: ${{ matrix.platform.target == 'x86_64' }}
         # Check the built wheel is installable on the oldest Python supported
         run: |
-          find ./dist/ -name "crunch64-*-abi3-*"
-          uv venv -p ${{ matrix.platform.python_version_min }}
-          source .venv/bin/activate
-          uv run python --version
-          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
-          uv run python -c "import crunch64; print(crunch64.__version__)"
+          .github/scripts/ci_check_wheel.sh ${{ matrix.platform.python_version_min }} abi3
       - name: Test wheels with max version (${{ matrix.platform.python_version_max }})
         if: ${{ matrix.platform.target == 'x86_64' }}
-        # Check the built wheel is installable on the oldest Python supported
+        # Check the built wheel is installable on the newest Python we know of
         run: |
-          find ./dist/ -name "crunch64-*-abi3-*"
-          rm -rf .venv
-          uv venv .venv -p ${{ matrix.platform.python_version_max }} --managed-python
-          source .venv/bin/activate
-          uv run python --version
-          uv pip install $(find ./dist/ -name "crunch64-*-abi3-*")
-          uv run python -c "import crunch64; print(crunch64.__version__)"
+          .github/scripts/ci_check_wheel.sh ${{ matrix.platform.python_version_max }} abi3
 
-  linux_pypy:
-    runs-on: ${{ matrix.platform.runner }}
-    strategy:
-      fail-fast: false
-      matrix:
-        platform:
-          - runner: ubuntu-22.04
-            target: x86_64
-          - runner: ubuntu-22.04
-            target: x86
-          - runner: ubuntu-22.04
-            target: aarch64
-          - runner: ubuntu-22.04
-            target: armv7
-          - runner: ubuntu-22.04
-            target: s390x
-          - runner: ubuntu-22.04
-            target: ppc64le
-    steps:
-      - uses: actions/checkout@main
-      - uses: actions/setup-python@v6
-        with:
-          python-version: |
-            pypy3.9
-            pypy3.10
-            pypy3.11
-      - name: Build wheels
-        uses: PyO3/maturin-action@v1
-        with:
-          target: ${{ matrix.platform.target }}
-          args: --release --out ../dist -i pypy3.9 pypy3.10 pypy3.11
-          sccache: ${{ !startsWith(github.ref, 'refs/tags/') }}
-          manylinux: auto
-          working-directory: lib/
-      - name: Upload wheels
-        uses: actions/upload-artifact@main
-        with:
-          name: wheels-linux-pypy-${{ matrix.platform.target }}
-          path: dist
-          if-no-files-found: error
+      - name: Test pypy wheels
+        if: ${{ matrix.platform.target == 'x86_64' }}
+        run: |
+          .github/scripts/ci_check_wheel.sh pypy3.9 pypy3.9
+          .github/scripts/ci_check_wheel.sh pypy3.10 pypy3.10
+          .github/scripts/ci_check_wheel.sh pypy3.11 pypy3.11
 
   musllinux:
     runs-on: ${{ matrix.platform.runner }}
