@@ -1,3 +1,7 @@
+# A Powershell port of `ci_check_wheel.sh`. Refer to that script instead.
+
+# Any change made here should be made in `ci_check_wheel.sh` too.
+
 param (
     [Parameter(Mandatory = $true)]
     [string]$PYTHON_VERSION,

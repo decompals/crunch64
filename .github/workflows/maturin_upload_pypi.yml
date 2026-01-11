@@ -77,9 +77,6 @@ jobs:
       # We do this by installing the Python version in a venv using uv,
       # installing the built wheel into the venv and running some simple
       # command like printing the crunch64 version from within Python.
-      # We need to do a not-great `find` command to find the wheel because
-      # we don't know the specific name of the wheel file (it can be affected
-      # by package version, arch, etc).
       # We can only test the wheels that matches the architecture of the runner
       # so we hope the other built wheels will just work, hopefully.
       - name: Install uv
