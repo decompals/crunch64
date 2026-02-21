@@ -28,26 +28,26 @@ jobs:
           cargo clippy --version
           cargo clippy --all --all-targets --all-features -- -D warnings
 
-  macos-check:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Test
-        run: cargo test
+  test:
+    name: Test on ${{ matrix.platform.name }}
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: linux
+            runner: ubuntu-latest
+          - name: macos
+            runner: macos-latest
+          - name: windows
+            runner: windows-latest
 
-  ubuntu-check:
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - name: Test
-        run: cargo test
+      - name: Checkout reposistory
+        uses: actions/checkout@v6
 
-  windows-check:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v5
       - name: Test
-        run: cargo test
+        run: cargo test -F std
 
   msrv:
     name: Check MSRV
