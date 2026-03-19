@@ -22,7 +22,7 @@ jobs:
 
   release:
     name: Release ${{ matrix.crate-type }} for ${{ matrix.target }}
-    runs-on: ${{ matrix.platform.runner }}
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
