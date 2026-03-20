@@ -138,7 +138,12 @@ jobs:
           cd package && tar -czf ../crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.tar.gz *
 
       - name: Package .zip
-        if: matrix.archive == 'zip'
+        if: matrix.archive == 'zip' && matrix.os_name == 'macos'
+        run: |
+          cd package && zip -r ../crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip *
+
+      - name: Package .zip
+        if: matrix.archive == 'zip' && matrix.os_name == 'windows'
         run: |
           cd package; Compress-Archive -Path * -DestinationPath ../crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip
 
@@ -159,7 +164,7 @@ jobs:
           ./tests.elf
 
       - name: Setup qemu
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64'
 
       - name: Test built archive (aarch64 linux)
