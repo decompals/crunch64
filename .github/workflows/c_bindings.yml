@@ -96,17 +96,17 @@ jobs:
         run:
           brew install tree
 
-      - name: Print built files
+      - name: Print built files (unix)
         if: matrix.os_name == 'linux' || matrix.os_name == 'macos'
         run: |
           tree target/${{ matrix.target }}/release
 
-      - name: Print built files
+      - name: Print built files (windows)
         if: matrix.os_name == 'windows'
         run: |
           tree /f target/${{ matrix.target }}/release
 
-      # Move versioned files to a new folder, this will contain the final release files
+      # Move versioned files and built lib to a new folder, this will contain the final release files
       - name: Move files for packaging
         run: |
           mkdir package
@@ -115,19 +115,16 @@ jobs:
           cp -r c_bindings/include/* package/include/
           cp LICENSE package/crunch64.LICENSEzip
           cp README.md package/crunch64.README.md
+          cp target/${{ matrix.target }}/release/crunch64.lib package/lib/ || cp target/${{ matrix.target }}/release/libcrunch64.a package/lib/
 
-      # Move the built library.
-      # This is a two step thing because windows is silly.
-      - name: Move lib for packaging (unix)
+      - name: Print package (unix)
         if: matrix.os_name == 'linux' || matrix.os_name == 'macos'
         run: |
-          cp target/${{ matrix.target }}/release/libcrunch64.a package/lib/
           tree package
 
-      - name: Move lib for packaging (windows)
+      - name: Print package (windows)
         if: matrix.os_name == 'windows'
         run: |
-          cp target/${{ matrix.target }}/release/crunch64.lib package/lib/
           tree /f package
 
       # Compress the package files
@@ -166,13 +163,15 @@ jobs:
       - name: Setup qemu
         uses: docker/setup-qemu-action@v4
         if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64'
-
       - name: Test built archive (aarch64 linux)
         if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64'
         run: |
           docker run --platform linux/arm64 --rm -v ${{ github.workspace }}:/work -w /work gcc:latest \
           sh -c "cc -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf && ./tests.elf"
 
+      - name: Setup MSVC in PATH
+        uses: ilammy/msvc-dev-cmd@v1
+        if: (matrix.os_name == 'windows' && matrix.architecture == 'x86') && matrix.target != 'x86_64-pc-windows-gnu'
       - name: Test built archive (x86 msvc)
         if: (matrix.os_name == 'windows' && matrix.architecture == 'x86') && matrix.target != 'x86_64-pc-windows-gnu'
         run: |
