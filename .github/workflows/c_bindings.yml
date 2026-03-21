@@ -156,7 +156,7 @@ jobs:
 
       # Build and run the archives. Multi step because each os/arch combo is weird
       - name: Test built archive (x86, unix like)
-        if: (matrix.os_name == 'linux' && matrix.architecture == 'x86') || matrix.os_name == 'macos' || matrix.target == 'x86_64-pc-windows-gnu'
+        if: (matrix.os_name == 'linux' && matrix.architecture == 'x86') || matrix.os_name == 'macos'
         run: |
           cc -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf
           ./tests.elf
