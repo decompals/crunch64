@@ -173,11 +173,19 @@ jobs:
       - name: Setup MSVC in PATH
         uses: ilammy/msvc-dev-cmd@v1
         if: (matrix.os_name == 'windows' && matrix.architecture == 'x86') && matrix.target != 'x86_64-pc-windows-gnu'
+      # Windows needs extra flags
       - name: Test built archive (x86 msvc)
         if: (matrix.os_name == 'windows' && matrix.architecture == 'x86') && matrix.target != 'x86_64-pc-windows-gnu'
         run: |
-          cl /I c_bindings/include/ c_bindings/tests.c package/lib/crunch64.lib /Fe:tests.exe
-          tests.exe
+          cl /I c_bindings/include/ c_bindings/tests.c package/lib/crunch64.lib ws2_32.lib ntdll.lib bcrypt.lib advapi32.lib userenv.lib  /Fe:tests.exe
+          ./tests.exe
+
+      # Windows needs extra flags
+      - name: Test built archive (x86, unix like)
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        run: |
+          cc -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -lws2_32 -lntdll -lbcrypt -ladvapi32 -luserenv -o tests.exe
+          ./tests.exe
 
       # We don't have a way to build and run aarch64 windows binaries on GHA :c
 
