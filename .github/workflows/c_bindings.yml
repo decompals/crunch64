@@ -161,6 +161,15 @@ jobs:
           cc -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf
           ./tests.elf
 
+      # Full static binary
+      - name: Test built archive (x86, unix like, musl, clang)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: |
+          clang -fuse-ld=lld -I/usr/include/x86_64-linux-musl -L/usr/lib/x86_64-linux-musl --target=x86_64-unknown-linux-musl -static -Wl,--gc-sections -Wl,--strip-all -ffunction-sections -fdata-sections -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf
+          file ./tests.elf
+          ldd ./tests.elf
+          ./tests.elf
+
       - name: Setup qemu
         uses: docker/setup-qemu-action@v4
         if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64'
@@ -181,7 +190,7 @@ jobs:
           ./tests.exe
 
       # Windows needs extra flags
-      - name: Test built archive (x86, unix like)
+      - name: Test built archive (x86 windows, unix like)
         if: matrix.target == 'x86_64-pc-windows-gnu'
         run: |
           cc -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -lws2_32 -lntdll -lbcrypt -ladvapi32 -luserenv -o tests.exe
