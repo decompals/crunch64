@@ -188,7 +188,7 @@ jobs:
         if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64' && matrix.target == 'aarch64-unknown-linux-musl'
         run: |
           docker run --platform linux/arm64 --rm -v ${{ github.workspace }}:/work -w /work alpine:latest \
-          sh -c "clang -fuse-ld=lld -I/usr/include/aarch64-linux-musl -L/usr/lib/aarch64-linux-musl --target=aarch64-unknown-linux-musl -static -Wl,--gc-sections -Wl,--strip-all -ffunction-sections -fdata-sections -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf && ./tests.elf"
+          sh -c "apk add -y clang lld && clang -fuse-ld=lld -I/usr/include/aarch64-linux-musl -L/usr/lib/aarch64-linux-musl --target=aarch64-unknown-linux-musl -static -Wl,--gc-sections -Wl,--strip-all -ffunction-sections -fdata-sections -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf && ./tests.elf"
 
       - name: Setup MSVC in PATH
         uses: ilammy/msvc-dev-cmd@v1
