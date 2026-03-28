@@ -34,6 +34,7 @@ jobs:
           - aarch64-apple-darwin
           - x86_64-unknown-linux-musl
           - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
           - aarch64-unknown-linux-gnu
         crate-type:
           - staticlib
@@ -66,13 +67,18 @@ jobs:
           - target: x86_64-unknown-linux-musl
             archive: tar.gz
             os_name: linux
-            runner: ubuntu-24.04
+            runner: ubuntu-22.04
             architecture: x86
           - target: x86_64-unknown-linux-gnu
             archive: tar.gz
             os_name: linux
             runner: ubuntu-22.04
             architecture: x86
+          - target: aarch64-unknown-linux-musl
+            archive: tar.gz
+            os_name: linux
+            architecture: aarch64
+            runner: ubuntu-22.04
           - target: aarch64-unknown-linux-gnu
             archive: tar.gz
             os_name: linux
@@ -172,11 +178,17 @@ jobs:
       - name: Setup qemu
         uses: docker/setup-qemu-action@v4
         if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64'
-      - name: Test built archive (aarch64 linux)
+      - name: Test built archive (aarch64, linux)
         if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64'
         run: |
           docker run --platform linux/arm64 --rm -v ${{ github.workspace }}:/work -w /work gcc:latest \
           sh -c "cc -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf && ./tests.elf"
+      # Full static binary
+      - name: Test built archive (aarch64, linux, musl, clang)
+        if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64' && matrix.target == 'aarch64-unknown-linux-musl'
+        run: |
+          docker run --platform linux/arm64 --rm -v ${{ github.workspace }}:/work -w /work gcc:latest \
+          sh -c "clang -fuse-ld=lld -I/usr/include/aarch64-linux-musl -L/usr/lib/aarch64-linux-musl --target=aarch64-unknown-linux-musl -static -Wl,--gc-sections -Wl,--strip-all -ffunction-sections -fdata-sections -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf && ./tests.elf"
 
       - name: Setup MSVC in PATH
         uses: ilammy/msvc-dev-cmd@v1
