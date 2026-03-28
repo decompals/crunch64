@@ -1,12 +1,84 @@
 #include "crunch64.h"
 
 #include <assert.h>
-#include <dirent.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _MSC_VER
+#include <windows.h>
+#else
+#include <dirent.h>
+#endif
+
+
+typedef struct CrossDirEntry {
+#ifdef _MSC_VER
+    WIN32_FIND_DATA find_data;
+    HANDLE hFind;
+    bool first;
+#else
+    DIR *dir;
+#endif
+} CrossDirEntry;
+
+
+bool cross_open_dir(CrossDirEntry *out, const char *dir_path) {
+#ifdef _MSC_VER
+    char buffer[0x400] = {0};
+    snprintf(buffer, sizeof(buffer), "%s/*", dir_path);
+    out->hFind = FindFirstFile(buffer, &out->find_data);
+    out->first = true;
+    if (out->hFind == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+#else
+    out->dir = opendir(dir_path);
+    if (!out->dir) {
+        return false;
+    }
+#endif
+    return true;
+}
+
+void cross_close_dir(CrossDirEntry *out) {
+#ifdef _MSC_VER
+    FindClose(out->hFind);
+#else
+    closedir(out->dir);
+#endif
+}
+
+const char *cross_next_filename(CrossDirEntry *out) {
+#ifdef _MSC_VER
+    if (!out->first) {
+        if (!FindNextFile(out->hFind, &out->find_data)) {
+            return NULL;
+        }
+    }
+
+    do {
+        const char *filename = out->find_data.cFileName;
+        out->first = false;
+
+        if (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0) {
+            continue;
+        }
+
+        return filename;
+
+    } while (FindNextFile(out->hFind, &out->find_data));
+#else
+    struct dirent *entry = readdir(out->dir);
+    if (entry) {
+        return entry->d_name;
+    }
+#endif
+    return NULL;
+}
+
 
 typedef Crunch64Error (*compress_bound_fn)(size_t *dst_size, size_t src_len, const uint8_t *const src);
 typedef Crunch64Error (*compress_fn)(size_t *dst_size, uint8_t *dst, size_t src_size, const uint8_t *src);
@@ -21,6 +93,7 @@ const char *const crunch64_error_str[] = {
     [Crunch64Error_ByteConversion] = "Byte conversion",
     [Crunch64Error_OutOfBounds] = "Out of bounds",
     [Crunch64Error_NullPointer] = "Null pointer",
+    [Crunch64Error_InvalidCompressionLevel] = "Invalid compression level",
 };
 
 const char *get_crunch64_error_str(Crunch64Error error) {
@@ -182,9 +255,8 @@ int errors = 0;
 
 void run_tests(const char *name, const char *file_extension, compress_bound_fn compress_bound, compress_fn compress,
                compress_bound_fn decompress_bound, compress_fn decompress) {
-    struct dirent *entry;
-    DIR *dir = opendir("test_data");
-    if (!dir) {
+    CrossDirEntry dir;
+    if (!cross_open_dir(&dir, "test_data")) {
         fprintf(stderr, "Could not open test_data directory\n");
         errors++;
         return;
@@ -194,19 +266,21 @@ void run_tests(const char *name, const char *file_extension, compress_bound_fn c
     fprintf(stderr, "\n");
 
     bool found_tests = false;
-    while ((entry = readdir(dir)) != NULL) {
-        if (!has_suffix(entry->d_name, file_extension)) {
+
+    const char *filename;
+    while ((filename = cross_next_filename(&dir)) != NULL) {
+        if (!has_suffix(filename, file_extension)) {
             continue;
         }
 
         found_tests = true;
 
         char bin_path[512];
-        snprintf(bin_path, sizeof(bin_path), "test_data/%s", entry->d_name);
+        snprintf(bin_path, sizeof(bin_path), "test_data/%s", filename);
         bin_path[strlen(bin_path) - strlen(file_extension)] = '\0'; // remove file extension
 
         char compressed_path[512];
-        snprintf(compressed_path, sizeof(compressed_path), "test_data/%s", entry->d_name);
+        snprintf(compressed_path, sizeof(compressed_path), "test_data/%s", filename);
 
         fprintf(stderr, "Reading file %s\n", bin_path);
         size_t bin_size = 0;
@@ -232,6 +306,8 @@ void run_tests(const char *name, const char *file_extension, compress_bound_fn c
         free(bin);
         free(compressed_data);
     }
+
+    cross_close_dir(&dir);
 
     if (!found_tests) {
         fprintf(stderr, "No test files found for %s\n", name);

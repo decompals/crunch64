@@ -9,12 +9,10 @@ jobs:
   test-c-bindings:
     name: Test C bindings
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@main
 
       - name: Make C test program
         run: make -C c_bindings BUILD_MODE=release
@@ -24,27 +22,72 @@ jobs:
 
   release:
     name: Release ${{ matrix.crate-type }} for ${{ matrix.target }}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
       matrix:
-        target: [x86_64-pc-windows-gnu, x86_64-pc-windows-msvc, x86_64-apple-darwin, x86_64-unknown-linux-musl, x86_64-unknown-linux-gnu]
-        crate-type: [staticlib]
+        target:
+          - x86_64-pc-windows-gnu
+          - x86_64-pc-windows-msvc
+          - aarch64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-unknown-linux-musl
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - aarch64-unknown-linux-gnu
+        crate-type:
+          - staticlib
         include:
           - target: x86_64-pc-windows-gnu
             archive: zip
+            os_name: windows
+            runner: windows-latest
+            architecture: x86
           - target: x86_64-pc-windows-msvc
             archive: zip
+            os_name: windows
+            runner: windows-latest
+            architecture: x86
+          - target: aarch64-pc-windows-msvc
+            archive: zip
+            os_name: windows
+            runner: windows-latest
+            architecture: aarch64
           - target: x86_64-apple-darwin
             archive: zip
+            os_name: macos
+            runner: macos-15-intel
+            architecture: x86
+          - target: aarch64-apple-darwin
+            archive: zip
+            os_name: macos
+            runner: macos-latest
+            architecture: aarch64
           - target: x86_64-unknown-linux-musl
             archive: tar.gz
+            os_name: linux
+            runner: ubuntu-22.04
+            architecture: x86
           - target: x86_64-unknown-linux-gnu
             archive: tar.gz
+            os_name: linux
+            runner: ubuntu-22.04
+            architecture: x86
+          - target: aarch64-unknown-linux-musl
+            archive: tar.gz
+            os_name: linux
+            architecture: aarch64
+            runner: ubuntu-22.04
+          - target: aarch64-unknown-linux-gnu
+            archive: tar.gz
+            os_name: linux
+            architecture: aarch64
+            runner: ubuntu-22.04
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@main
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -54,55 +97,121 @@ jobs:
       - name: Build lib
         run: cargo rustc --manifest-path lib/Cargo.toml --lib --features c_bindings --release --crate-type ${{ matrix.crate-type }} --target ${{ matrix.target }}
 
-      - name: Print built files
+      - name: Install tree
+        if: matrix.os_name == 'macos'
+        run:
+          brew install tree
+
+      - name: Print built files (unix)
+        if: matrix.os_name == 'linux' || matrix.os_name == 'macos'
         run: |
           tree target/${{ matrix.target }}/release
 
+      - name: Print built files (windows)
+        if: matrix.os_name == 'windows'
+        run: |
+          tree /f target/${{ matrix.target }}/release
+
+      # Move versioned files and built lib to a new folder, this will contain the final release files
       - name: Move files for packaging
         run: |
-          mkdir -p package/lib package/include
-          cp target/${{ matrix.target }}/release/libcrunch64.a package/lib/ || cp target/${{ matrix.target }}/release/crunch64.lib package/lib/
+          mkdir package
+          mkdir package/lib
+          mkdir package/include
           cp -r c_bindings/include/* package/include/
           cp LICENSE package/crunch64.LICENSE
           cp README.md package/crunch64.README.md
+
+      - name: Copy package (unix)
+        if: matrix.os_name == 'linux' || matrix.os_name == 'macos' || matrix.target == 'x86_64-pc-windows-gnu'
+        run: |
+          cp target/${{ matrix.target }}/release/libcrunch64.a package/lib/
           tree package
 
+      - name: Copy package (windows)
+        if: matrix.os_name == 'windows' && matrix.target != 'x86_64-pc-windows-gnu'
+        run: |
+          cp target/${{ matrix.target }}/release/crunch64.lib package/lib/
+          tree /f package
+
+      # Compress the package files
+      # Two steps because windows silly
       - name: Package .tar.gz
         if: matrix.archive == 'tar.gz'
         run: |
           cd package && tar -czf ../crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.tar.gz *
 
       - name: Package .zip
-        if: matrix.archive == 'zip'
+        if: matrix.archive == 'zip' && matrix.os_name == 'macos'
         run: |
           cd package && zip -r ../crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip *
 
-      - name: Upload .tar.gz archive
-        if: matrix.archive == 'tar.gz'
-        uses: actions/upload-artifact@v4
+      - name: Package .zip
+        if: matrix.archive == 'zip' && matrix.os_name == 'windows'
+        run: |
+          cd package; Compress-Archive -Path * -DestinationPath ../crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip
+
+      # Upload the artifact, useful for inspecting everything is ok
+      - name: Upload ${{ matrix.archive }} archive
+        uses: actions/upload-artifact@main
         with:
           name: crunch64-${{ matrix.crate-type }}-${{ matrix.target }}
           path: |
-            crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.tar.gz
+            crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.${{ matrix.archive }}
           if-no-files-found: error
 
-      - name: Upload .zip archive
-        if: matrix.archive == 'zip'
-        uses: actions/upload-artifact@v4
-        with:
-          name: crunch64-${{ matrix.crate-type }}-${{ matrix.target }}
-          path: |
-            crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip
-          if-no-files-found: error
+      # Build and run the archives. Multi step because each os/arch combo is weird
+      - name: Test built archive (x86, unix like)
+        if: (matrix.os_name == 'linux' && matrix.architecture == 'x86') || matrix.os_name == 'macos'
+        run: |
+          cc -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf
+          ./tests.elf
 
-      - name: Publish .tar.gz release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/') && matrix.archive == 'tar.gz'
-        with:
-          files: crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.tar.gz
+      # Full static binary
+      - name: Test built archive (x86, unix like, musl, clang)
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: |
+          clang -fuse-ld=lld -I/usr/include/x86_64-linux-musl -L/usr/lib/x86_64-linux-musl --target=x86_64-unknown-linux-musl -static -Wl,--gc-sections -Wl,--strip-all -ffunction-sections -fdata-sections -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf
+          file ./tests.elf
+          ./tests.elf
 
-      - name: Publish .zip release
+      - name: Setup qemu
+        uses: docker/setup-qemu-action@v4
+        if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64'
+      - name: Test built archive (aarch64, linux)
+        if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64'
+        run: |
+          docker run --platform linux/arm64 --rm -v ${{ github.workspace }}:/work -w /work gcc:latest \
+          sh -c "cc -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf && ./tests.elf"
+      # Full static binary
+      - name: Test built archive (aarch64, linux, musl, clang)
+        if: matrix.os_name == 'linux' && matrix.architecture == 'aarch64' && matrix.target == 'aarch64-unknown-linux-musl'
+        run: |
+          docker run --platform linux/arm64 --rm -v ${{ github.workspace }}:/work -w /work alpine:latest \
+          sh -c "apk add clang lld && clang -fuse-ld=lld -I/usr/include/aarch64-linux-musl -L/usr/lib/aarch64-linux-musl --target=aarch64-unknown-linux-musl -static -Wl,--gc-sections -Wl,--strip-all -ffunction-sections -fdata-sections -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf && ./tests.elf"
+
+      - name: Setup MSVC in PATH
+        uses: ilammy/msvc-dev-cmd@v1
+        if: (matrix.os_name == 'windows' && matrix.architecture == 'x86') && matrix.target != 'x86_64-pc-windows-gnu'
+      # Windows needs extra flags
+      - name: Test built archive (x86 msvc)
+        if: (matrix.os_name == 'windows' && matrix.architecture == 'x86') && matrix.target != 'x86_64-pc-windows-gnu'
+        run: |
+          cl /I c_bindings/include/ c_bindings/tests.c package/lib/crunch64.lib ws2_32.lib ntdll.lib bcrypt.lib advapi32.lib userenv.lib  /Fe:tests.exe
+          ./tests.exe
+
+      # Windows needs extra flags
+      - name: Test built archive (x86 windows, unix like)
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        run: |
+          cc -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -lws2_32 -lntdll -lbcrypt -ladvapi32 -luserenv -o tests.exe
+          ./tests.exe
+
+      # We don't have a way to build and run aarch64 windows binaries on GHA :c
+
+      # Actually publish the built files to github releases
+      - name: Publish ${{ matrix.archive }} release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/') && matrix.archive == 'zip'
+        if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.zip
+          files: crunch64-${{ matrix.crate-type }}-${{ matrix.target }}.${{ matrix.archive }}

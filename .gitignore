@@ -4,5 +4,7 @@ target/
 *.Yay0
 *.Yaz0
 *.elf
+*.a
+*.lib
 
 .vscode/settings.json
