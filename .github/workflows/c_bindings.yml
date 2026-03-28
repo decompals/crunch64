@@ -66,7 +66,7 @@ jobs:
           - target: x86_64-unknown-linux-musl
             archive: tar.gz
             os_name: linux
-            runner: ubuntu-22.04
+            runner: ubuntu-24.04
             architecture: x86
           - target: x86_64-unknown-linux-gnu
             archive: tar.gz
@@ -167,7 +167,6 @@ jobs:
         run: |
           clang -fuse-ld=lld -I/usr/include/x86_64-linux-musl -L/usr/lib/x86_64-linux-musl --target=x86_64-unknown-linux-musl -static -Wl,--gc-sections -Wl,--strip-all -ffunction-sections -fdata-sections -I c_bindings/include/ c_bindings/tests.c -L package/lib/ -l crunch64 -o tests.elf
           file ./tests.elf
-          ldd ./tests.elf
           ./tests.elf
 
       - name: Setup qemu
