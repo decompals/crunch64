@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-03-28
+
+### Added
+
+- Prebuilt C archive libraries for the following targets:
+  - `aarch64-pc-windows-msvc`
+  - `aarch64-apple-darwin`
+  - `aarch64-unknown-linux-gnu`
+  - `aarch64-unknown-linux-musl`
+- Most prebuilt C libs are now tested in CI.
+  - The following targets are being tested in CI:
+    - `x86_64-pc-windows-gnu`
+    - `x86_64-pc-windows-msvc`
+    - `x86_64-apple-darwin`
+    - `aarch64-apple-darwin`
+    - `x86_64-unknown-linux-musl`
+      - Builds/links using GCC default and Clang with musl target.
+    - `x86_64-unknown-linux-gnu`
+    - `aarch64-unknown-linux-musl`
+    - `aarch64-unknown-linux-gnu`
+  - The following targets are NOT being tested in CI:
+    - `aarch64-pc-windows-msvc`
+
+### Changed
+
+- Prebuilt C libs are now built under the corresponding native OS instead of
+  crosscompiling from an Ubuntu runner.
+- Rewrite the C bindings test file to make it compatible with MSVC.
+
 ### Fixed
 
 - Fix CI not running Rust tests.
@@ -139,7 +168,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Python bindings.
 - C bindings.
 
-[unreleased]: https://github.com/decompals/crunch64/compare/0.6.1...HEAD
+[unreleased]: https://github.com/decompals/crunch64/compare/0.6.2...HEAD
+[0.6.2]: https://github.com/decompals/crunch64/compare/0.6.1...0.6.2
 [0.6.1]: https://github.com/decompals/crunch64/compare/0.6.0...0.6.1
 [0.6.0]: https://github.com/decompals/crunch64/compare/0.5.4...0.6.0
 [0.5.4]: https://github.com/decompals/crunch64/compare/0.5.3...0.5.4
